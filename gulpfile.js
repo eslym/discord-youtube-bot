@@ -8,7 +8,7 @@ const proj = ts.createProject('tsconfig.json');
 gulp.task('build', function () {
     return proj.src()
         .pipe(sourcemaps.init())
-        .pipe(proj())
+        .pipe(ts(proj))
         .js
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('dist'));
