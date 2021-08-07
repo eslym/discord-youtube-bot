@@ -5,8 +5,7 @@
     "sourceMap": true,
     "outDir": "./dist",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "resolveJsonModule": true
+    "emitDecoratorMetadata": true
   },
   "include": [
     "./src/**/*"
