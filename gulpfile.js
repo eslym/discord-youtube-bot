@@ -3,12 +3,12 @@ const ts = require('gulp-typescript');
 const clean = require('gulp-clean');
 const sourcemaps = require('gulp-sourcemaps');
 
-const proj = ts.createProject('tsconfig.json');
+const proj = ts.createProject('./tsconfig.json');
 
 gulp.task('build', function () {
     return proj.src()
         .pipe(sourcemaps.init())
-        .pipe(ts(proj))
+        .pipe(proj())
         .js
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('dist'));

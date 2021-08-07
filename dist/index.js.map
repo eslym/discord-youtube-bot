@@ -1,1 +1,1 @@
-{"version":3,"sources":["index.ts"],"names":[],"mappings":"AAAA,OAAO,CAAC,GAAG,CAAC,GAAG,CAAC,CAAC","file":"index.js","sourcesContent":["console.log('a');"]}
+{"version":3,"sources":["../src/index.ts"],"names":[],"mappings":";;AAAA,mCAAmC;AAEnC,MAAM,CAAC,MAAM,EAAE,CAAC","file":"index.js","sourcesContent":["import * as config from './config';\n\nconfig.reload();\n"]}
