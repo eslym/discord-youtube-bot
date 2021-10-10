@@ -23,6 +23,9 @@ export class Subscription extends Model<Subscription>{
     @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'websub_notification_on_channel'})
     public sub_id: number;
 
+    @Column({type: DataTypes.STRING, allowNull: true})
+    public mention: string;
+
     @HasMany(()=>Notification, 'subscription_id')
     public notifications: Notification[];
 }

@@ -13,30 +13,31 @@ exports.SearchCommand = void 0;
 const builders_1 = require("@discordjs/builders");
 const discord_js_1 = require("discord.js");
 const googleapis_1 = require("googleapis");
+const embed_1 = require("../utils/embed");
 exports.SearchCommand = {
     definition: new builders_1.SlashCommandSubcommandBuilder()
         .setName('search')
         .setDescription('Search youtube channel')
-        .addStringOption(opt => opt.setName('channel')
+        .addStringOption(opt => opt.setName('keyword')
         .setDescription('Keyword to for searching channel')
         .setRequired(true)),
     handle(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            let keyword = interaction.options.getString('channel');
-            yield interaction.reply(`Searching on "${keyword}" on youtube.`);
+            let keyword = interaction.options.getString('keyword');
+            yield interaction.reply({ embeds: [embed_1.embed.log(`Searching on "${keyword}" on youtube.`)] });
             let res = yield googleapis_1.google.youtube('v3').search.list({
                 q: keyword, type: ['channel'], part: ['snippet', 'id'], maxResults: 10
             });
             if (res.data.pageInfo.totalResults === 0) {
-                yield interaction.followUp(`No search result for "${keyword}" :(`);
+                yield interaction.editReply({ embeds: [embed_1.embed.warn(`No search result for "${keyword}" :(`)] });
                 return;
             }
             let channels = {};
             let menu = new discord_js_1.MessageSelectMenu();
             menu.setCustomId('youtube_subscribe_' + discord_js_1.SnowflakeUtil.generate());
-            menu.setPlaceholder('Select a channel to subscribe');
+            menu.setPlaceholder('Select a channel to view details');
             menu.addOptions(res.data.items.map(item => {
-                channels[item.id.channelId] = item.snippet.title;
+                channels[item.id.channelId] = item;
                 return {
                     label: item.snippet.title,
                     description: item.snippet.description.length > 100 ?
@@ -45,27 +46,24 @@ exports.SearchCommand = {
                     value: item.id.channelId,
                 };
             }));
-            let msg = yield interaction.followUp({
-                content: `Search results for "${keyword}":`,
+            let msg = yield interaction.editReply({
+                embeds: [embed_1.embed.info(`Search results for "${keyword}":`)],
                 components: [new discord_js_1.MessageActionRow().setComponents(menu)]
             });
             let message = yield interaction.channel.messages.fetch(msg.id);
             let collector = message.createMessageComponentCollector({
-                componentType: 3 /* SELECT_MENU */, time: 20000
+                componentType: 3 /* SELECT_MENU */, time: 60000
             });
             collector.on('collect', (imenu) => __awaiter(this, void 0, void 0, function* () {
-                if (imenu.user.id !== interaction.user.id) {
-                    yield imenu.reply(`${interaction.user} you can't do this!`);
-                    return;
-                }
-                imenu.reply(imenu.values[0]);
-                menu.setPlaceholder(`Subscribed to ${channels[imenu.values[0]]}`);
-                menu.setDisabled(true);
-                yield message.edit({
-                    content: `Search results for ${keyword}:`,
-                    components: [new discord_js_1.MessageActionRow().setComponents(menu)]
-                });
-                collector.removeAllListeners('end');
+                let embed = new discord_js_1.MessageEmbed();
+                let channel = channels[imenu.values[0]];
+                embed.setColor('GREEN');
+                embed.setTitle(channel.snippet.title);
+                embed.setURL(`https://youtube.com/channel/${channel.id.channelId}`);
+                embed.setThumbnail(channel.snippet.thumbnails.default.url);
+                embed.setDescription(channel.snippet.description);
+                embed.addField('Channel ID', channel.id.channelId);
+                yield imenu.reply({ embeds: [embed] });
             }));
             collector.on('end', () => {
                 menu.setPlaceholder("Expired.");

@@ -28,6 +28,7 @@ const Subscription_1 = require("./Subscription");
 const axios_1 = require("axios");
 const config_1 = require("../config");
 const googleapis_1 = require("googleapis");
+const logger_1 = require("../logger");
 let WebSub = class WebSub extends sequelize_typescript_1.Model {
     static makeId(self) {
         if (!self.id) {
@@ -66,7 +67,7 @@ let WebSub = class WebSub extends sequelize_typescript_1.Model {
             data.append('hub.secret', this.secret);
             yield axios_1.default.post('https://pubsubhubbub.appspot.com/subscribe', data)
                 .catch((_) => {
-                console.error("Failed to subscribe " + this.topic_url);
+                logger_1.logger.warn(`[WebSub] Failed to ${mode} ` + this.topic_url);
             });
         });
     }
@@ -76,17 +77,13 @@ __decorate([
     __metadata("design:type", Number)
 ], WebSub.prototype, "id", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false, unique: true }),
     __metadata("design:type", String)
 ], WebSub.prototype, "youtube_channel", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false }),
     __metadata("design:type", String)
 ], WebSub.prototype, "secret", void 0);
-__decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.TEXT, allowNull: false }),
-    __metadata("design:type", String)
-], WebSub.prototype, "message", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
     __metadata("design:type", Date)

@@ -35,6 +35,10 @@ __decorate([
     __metadata("design:type", Number)
 ], Subscription.prototype, "sub_id", void 0);
 __decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: true }),
+    __metadata("design:type", String)
+], Subscription.prototype, "mention", void 0);
+__decorate([
     (0, sequelize_typescript_1.HasMany)(() => Notification_1.Notification, 'subscription_id'),
     __metadata("design:type", Array)
 ], Subscription.prototype, "notifications", void 0);

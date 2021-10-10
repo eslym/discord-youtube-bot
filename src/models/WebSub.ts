@@ -7,6 +7,7 @@ import {Subscription} from "./Subscription";
 import axios from "axios";
 import {get as config} from "../config";
 import {google, youtube_v3} from "googleapis";
+import {logger} from "../logger";
 
 @Table({tableName: 'web_subs', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
 export class WebSub extends Model<WebSub> {
@@ -24,14 +25,11 @@ export class WebSub extends Model<WebSub> {
     @Column({type: DataTypes.BIGINT.UNSIGNED, primaryKey: true})
     public id: number;
 
-    @Column({type: DataTypes.STRING, allowNull: false})
+    @Column({type: DataTypes.STRING, allowNull: false, unique: true})
     public youtube_channel: string;
 
     @Column({type: DataTypes.STRING, allowNull: false})
     public secret: string;
-
-    @Column({type: DataTypes.TEXT, allowNull: false})
-    public message: string;
 
     @Column({type: DataTypes.DATE, allowNull: true})
     public created_at: Date;
@@ -75,7 +73,7 @@ export class WebSub extends Model<WebSub> {
         data.append('hub.secret', this.secret);
         await axios.post('https://pubsubhubbub.appspot.com/subscribe', data)
             .catch((_) => {
-                console.error("Failed to subscribe " + this.topic_url);
+                logger.warn(`[WebSub] Failed to ${mode} ` + this.topic_url);
             });
     }
 }

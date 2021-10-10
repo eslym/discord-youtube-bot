@@ -1,10 +1,20 @@
-import {Client, CommandInteraction, Intents} from "discord.js";
+import {
+    ApplicationCommand, ApplicationCommandPermissionData,
+    Client,
+    Collection,
+    Guild,
+    GuildResolvable,
+    Intents,
+    Snowflake
+} from "discord.js";
 import {REST} from "@discordjs/rest";
 import {Routes} from "discord-api-types/v9";
 import {get as config} from "./config";
 import {SlashCommandBuilder} from "@discordjs/builders";
 import {SearchCommand} from "./commands/SearchCommand";
 import {logger} from "./logger";
+import {SubscribeCommand} from "./commands/SubscribeCommand";
+import {UnsubscribeCommand} from "./commands/UnsubscribeCommand";
 
 let intents = new Intents();
 
@@ -21,7 +31,9 @@ let client = new REST({version: '9'});
 client.setToken(config('discord.token'));
 
 let commands = {
-    'search': SearchCommand
+    'search': SearchCommand,
+    'subscribe': SubscribeCommand,
+    'unsubscribe': UnsubscribeCommand,
 };
 
 export async function setupCommands() {
@@ -39,36 +51,49 @@ export async function setupCommands() {
     });
 }
 
+async function setGuildCommandPermissions(guild: Guild, cmds: Collection<Snowflake, ApplicationCommand<{ guild: GuildResolvable }>>) {
+    if (!guild.commands) return;
+    for (let command of cmds.values()) {
+        try {
+            let permissions: ApplicationCommandPermissionData[] = [
+                {
+                    id: guild.ownerId,
+                    type: 'USER',
+                    permission: true,
+                }
+            ];
+            await command.permissions.add({
+                guild, permissions
+            });
+        } catch (err) {
+            logger.warn(`Failed to set permissions for /${command.name} on ${guild.name}`);
+        }
+    }
+}
+
 bot.on('ready', () => {
     (async () => {
         let guilds = await bot.guilds.fetch();
         let cmds = await bot.application.commands.fetch();
         for (let g of guilds.values()) {
             let guild = await g.fetch();
-            if (!guild.commands) continue;
-            for (let command of cmds.values()) {
-                try {
-                    await command.permissions.add({
-                        guild,
-                        permissions: [
-                            {
-                                id: guild.ownerId,
-                                type: 'USER',
-                                permission: true,
-                            }
-                        ]
-                    });
-                } catch (err) {
-                    logger.warn(`Failed to set permissions for /${command.name} on ${guild.name}`);
-                }
-            }
+            await setGuildCommandPermissions(guild, cmds);
         }
+        bot.on('guildCreate', (guild) => {
+            (async () => {
+                guild = await guild.fetch();
+                await setGuildCommandPermissions(guild, cmds);
+            })().catch((error) => {
+                logger.error(error);
+            });
+        });
     })().catch(logger.error);
 });
 
 bot.on('interactionCreate', (interaction) => {
     if (interaction.isCommand() && interaction.commandName === 'youtube') {
         let cmd = interaction.options.getSubcommand(true);
+        logger.info(`${interaction.user.tag}:${interaction.user.id} run a command "/${interaction.commandName} ${cmd}"`)
         commands[cmd].handle(interaction).catch(logger.error);
     }
 });

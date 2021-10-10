@@ -1,6 +1,7 @@
 discord:
   appId: ""
   token: ""
+  inviteLink: true
 youtube:
   key: ""
 websub:

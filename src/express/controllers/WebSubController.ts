@@ -17,16 +17,16 @@ export class WebSubController extends BaseController {
         let title = data.snippet.title;
         if (this.request.query['hub.mode'] === 'subscribe') {
             if (websub.expires_at === null) {
-                console.info(`[WebSub] Subscribed ${title}`);
+                logger.info(`[WebSub] Subscribed ${title}`);
             } else {
-                console.info(`[WebSub] Renewed ${title}`);
+                logger.info(`[WebSub] Renewed ${title}`);
             }
             websub.expires_at = moment()
                 .add({second: Number.parseInt(this.request.query['hub.lease_seconds'] as string)})
                 .toDate();
             websub.save();
         } else if (this.request.query['hub.mode'] === 'unsubscribe') {
-            logger.log(`[WebSub] Unsubscribed ${title}`);
+            logger.info(`[WebSub] Unsubscribed ${title}`);
             await YoutubeVideo.destroy({
                 where: {
                     sub_id: websub.id

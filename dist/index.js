@@ -30,6 +30,14 @@ sql_1.sequelize.addModels([
     MemberPermission_1.MemberPermission,
 ]);
 (() => __awaiter(void 0, void 0, void 0, function* () {
+    if (config.get('discord.inviteLink')) {
+        let url = new URL('https://discord.com/oauth2/authorize');
+        url.searchParams.set('client_id', config.get('discord.appId'));
+        url.searchParams.set('scope', 'bot applications.commands');
+        url.searchParams.set('permissions', '224256');
+        logger_1.logger.info('Use the following link to add this bot into server.');
+        logger_1.logger.info(url.toString());
+    }
     if (config.get('database.sync')) {
         yield sql_1.sequelize.sync({ alter: true });
         logger_1.logger.info("DB synced.");
