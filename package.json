@@ -31,6 +31,7 @@
     "express": "^4.17.1",
     "jsonpath": "^1.1.1",
     "moment": "^2.29.1",
+    "mysql2": "^2.3.0",
     "node-brigadier": "^0.0.12",
     "reflect-metadata": "^0.1.13",
     "sequelize": "^5.22.4",

@@ -1,6 +1,6 @@
 import { SnowflakeUtil } from "discord.js";
 import { BeforeValidate, Column, HasMany, Model, Table } from "sequelize-typescript";
-import { DataTypes } from "sequelize/types";
+import { DataTypes } from "sequelize";
 import { Notification } from "./Notification";
 import { WebSub } from "./WebSub";
 
