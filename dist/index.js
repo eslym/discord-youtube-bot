@@ -16,8 +16,6 @@ const Notification_1 = require("./models/Notification");
 const Subscription_1 = require("./models/Subscription");
 const WebSub_1 = require("./models/WebSub");
 const YoutubeVideo_1 = require("./models/YoutubeVideo");
-const RolePermission_1 = require("./models/RolePermission");
-const MemberPermission_1 = require("./models/MemberPermission");
 const server_1 = require("./express/server");
 const googleapis_1 = require("googleapis");
 const bot_1 = require("./bot");
@@ -26,8 +24,6 @@ sql_1.sequelize.addModels([
     Subscription_1.Subscription,
     WebSub_1.WebSub,
     YoutubeVideo_1.YoutubeVideo,
-    RolePermission_1.RolePermission,
-    MemberPermission_1.MemberPermission,
 ]);
 (() => __awaiter(void 0, void 0, void 0, function* () {
     if (config.get('discord.inviteLink')) {

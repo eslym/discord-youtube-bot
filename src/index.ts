@@ -5,8 +5,6 @@ import {Notification} from "./models/Notification";
 import {Subscription} from "./models/Subscription";
 import {WebSub} from "./models/WebSub";
 import {YoutubeVideo} from "./models/YoutubeVideo";
-import {RolePermission} from "./models/RolePermission";
-import {MemberPermission} from "./models/MemberPermission";
 import {server} from "./express/server";
 import {google} from "googleapis";
 import {bot, setupCommands} from "./bot";
@@ -16,8 +14,6 @@ sql.addModels([
     Subscription,
     WebSub,
     YoutubeVideo,
-    RolePermission,
-    MemberPermission,
 ]);
 
 (async () => {
