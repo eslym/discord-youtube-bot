@@ -18,6 +18,12 @@ export class Notification extends Model<Notification>{
     public video_id: string;
 
     @Column({type: DataTypes.DATE, allowNull: true})
+    public scheduled_at: Date;
+
+    @Column({type: DataTypes.DATE, allowNull: true})
+    public notified_at: Date;
+
+    @Column({type: DataTypes.DATE, allowNull: true})
     public created_at: Date;
 
     @Column({type: DataTypes.DATE, allowNull: true})
