@@ -4,6 +4,7 @@
   "description": "Discord youtube bot",
   "main": "index.js",
   "scripts": {
+    "prod": "NODE_ENV=production node index.js",
     "test": "node index.js",
     "build": "gulp build",
     "watch": "gulp watch"
