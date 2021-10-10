@@ -18,6 +18,9 @@ const WebSub_1 = require("./models/WebSub");
 const YoutubeVideo_1 = require("./models/YoutubeVideo");
 const RolePermission_1 = require("./models/RolePermission");
 const MemberPermission_1 = require("./models/MemberPermission");
+const server_1 = require("./express/server");
+const googleapis_1 = require("googleapis");
+const bot_1 = require("./bot");
 sql_1.sequelize.addModels([
     Notification_1.Notification,
     Subscription_1.Subscription,
@@ -29,8 +32,14 @@ sql_1.sequelize.addModels([
 (() => __awaiter(void 0, void 0, void 0, function* () {
     if (config.get('database.sync')) {
         yield sql_1.sequelize.sync({ alter: true });
-        logger_1.logger.info("DB Synced.");
+        logger_1.logger.info("DB synced.");
     }
+    googleapis_1.google.options({ auth: config.get('youtube.key') });
+    server_1.server.listen(config.get('websub.port', config.get('websub.host')), () => {
+        logger_1.logger.info('Websub listener ready.');
+    });
+    yield bot_1.bot.login(config.get('discord.token'));
+    logger_1.logger.info('Discord bot ready.');
 }))().catch(e => logger_1.logger.error(e));
 
 //# sourceMappingURL=index.js.map

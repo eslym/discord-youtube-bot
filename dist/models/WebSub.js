@@ -21,12 +21,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebSub = void 0;
 const sequelize_typescript_1 = require("sequelize-typescript");
 const sequelize_1 = require("sequelize");
-const xml2js_1 = require("xml2js");
 const discord_js_1 = require("discord.js");
 const crypto = require("crypto");
 const YoutubeVideo_1 = require("./YoutubeVideo");
 const Subscription_1 = require("./Subscription");
-const fetch = require("node-fetch");
+const axios_1 = require("axios");
+const config_1 = require("../config");
+const googleapis_1 = require("googleapis");
 let WebSub = class WebSub extends sequelize_typescript_1.Model {
     static makeId(self) {
         if (!self.id) {
@@ -42,22 +43,14 @@ let WebSub = class WebSub extends sequelize_typescript_1.Model {
         url.search = params.toString();
         return url.toString();
     }
-    get rss_url() {
-        let url = new URL('https://www.youtube.com/feeds/videos.xml');
-        let params = new URLSearchParams([['channel_id', this.youtube_channel]]);
-        url.search = params.toString();
-        return url.toString();
-    }
-    get youtube_url() {
-        return `https://www.youtube.com/channel/${this.youtube_channel}`;
-    }
-    getTitle() {
+    fetchSnippet() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                let res = yield fetch(this.rss_url);
-                let xml = yield res.text();
-                let data = yield (0, xml2js_1.parseStringPromise)(xml);
-                return data.feed.title;
+                let res = yield googleapis_1.google.youtube('v3').channels.list({
+                    id: [this.youtube_channel],
+                    part: ['snippet'],
+                });
+                return res.data.items[0];
             }
             catch (_) {
                 return null;
@@ -67,14 +60,12 @@ let WebSub = class WebSub extends sequelize_typescript_1.Model {
     subscribe(mode = 'subscribe') {
         return __awaiter(this, void 0, void 0, function* () {
             let data = new URLSearchParams();
-            data.append('hub.callback', `${process.env.WEBSUB_CALLBACK}/${this.id}`);
+            data.append('hub.callback', `${(0, config_1.get)('websub.url')}/websub/${this.id}`);
             data.append('hub.mode', mode);
             data.append('hub.topic', this.topic_url);
             data.append('hub.secret', this.secret);
-            yield fetch('https://pubsubhubbub.appspot.com/subscribe', {
-                method: 'post',
-                body: data,
-            }).catch((_) => {
+            yield axios_1.default.post('https://pubsubhubbub.appspot.com/subscribe', data)
+                .catch((_) => {
                 console.error("Failed to subscribe " + this.topic_url);
             });
         });
