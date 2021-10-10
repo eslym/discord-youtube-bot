@@ -11,43 +11,51 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Notification = void 0;
 const sequelize_typescript_1 = require("sequelize-typescript");
-const types_1 = require("sequelize/types");
 const Subscription_1 = require("./Subscription");
 const YoutubeVideo_1 = require("./YoutubeVideo");
+const sequelize_1 = require("sequelize");
 let Notification = class Notification extends sequelize_typescript_1.Model {
 };
 __decorate([
-    sequelize_typescript_1.Column({ type: types_1.DataTypes.BIGINT.UNSIGNED, primaryKey: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, primaryKey: true }),
     __metadata("design:type", Number)
 ], Notification.prototype, "id", void 0);
 __decorate([
-    sequelize_typescript_1.ForeignKey(() => Subscription_1.Subscription),
-    sequelize_typescript_1.Column({ type: types_1.DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'video_notification_on_subscription' }),
+    (0, sequelize_typescript_1.ForeignKey)(() => Subscription_1.Subscription),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'video_notification_on_subscription' }),
     __metadata("design:type", Number)
 ], Notification.prototype, "subscription_id", void 0);
 __decorate([
-    sequelize_typescript_1.ForeignKey(() => YoutubeVideo_1.YoutubeVideo),
-    sequelize_typescript_1.Column({ type: types_1.DataTypes.STRING, allowNull: false, unique: 'video_notification_on_subscription' }),
+    (0, sequelize_typescript_1.ForeignKey)(() => YoutubeVideo_1.YoutubeVideo),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false, unique: 'video_notification_on_subscription' }),
     __metadata("design:type", String)
 ], Notification.prototype, "video_id", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: types_1.DataTypes.DATE, allowNull: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
+    __metadata("design:type", Date)
+], Notification.prototype, "scheduled_at", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
+    __metadata("design:type", Date)
+], Notification.prototype, "notified_at", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
     __metadata("design:type", Date)
 ], Notification.prototype, "created_at", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: types_1.DataTypes.DATE, allowNull: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
     __metadata("design:type", Date)
 ], Notification.prototype, "updated_at", void 0);
 __decorate([
-    sequelize_typescript_1.BelongsTo(() => YoutubeVideo_1.YoutubeVideo, { foreignKey: 'video_id', onDelete: 'cascade', onUpdate: 'restrict' }),
+    (0, sequelize_typescript_1.BelongsTo)(() => YoutubeVideo_1.YoutubeVideo, { foreignKey: 'video_id', onDelete: 'cascade', onUpdate: 'restrict' }),
     __metadata("design:type", YoutubeVideo_1.YoutubeVideo)
 ], Notification.prototype, "video", void 0);
 __decorate([
-    sequelize_typescript_1.BelongsTo(() => Subscription_1.Subscription, { foreignKey: 'subscription_id', onDelete: 'cascade', onUpdate: 'restrict' }),
+    (0, sequelize_typescript_1.BelongsTo)(() => Subscription_1.Subscription, { foreignKey: 'subscription_id', onDelete: 'cascade', onUpdate: 'restrict' }),
     __metadata("design:type", Subscription_1.Subscription)
 ], Notification.prototype, "subscription", void 0);
 Notification = __decorate([
-    sequelize_typescript_1.Table({ tableName: 'notificatons', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin' })
+    (0, sequelize_typescript_1.Table)({ tableName: 'notifications', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin' })
 ], Notification);
 exports.Notification = Notification;
 

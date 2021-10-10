@@ -28,12 +28,14 @@ export function get(path: string = '$', def: any = undefined): any{
     if(res instanceof Array){
         switch(res.length){
             case 0:
-                return undefined;
+                return def;
             case 1:
-                return res[0];
+                return res[0] === undefined ? def : res[0];
             default:
                 return res;
         }
     }
     return res === undefined ? def : res;
 }
+
+reload();

@@ -4,7 +4,7 @@ import { DataTypes } from "sequelize";
 import { Notification } from "./Notification";
 import { WebSub } from "./WebSub";
 
-@Table({tableName: 'notificatons', createdAt: 'created_at', updatedAt: 'updated_at'})
+@Table({tableName: 'subscriptions', createdAt: 'created_at', updatedAt: 'updated_at'})
 export class Subscription extends Model<Subscription>{
 
     @BeforeValidate

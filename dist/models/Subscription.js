@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Subscription = void 0;
 const discord_js_1 = require("discord.js");
 const sequelize_typescript_1 = require("sequelize-typescript");
-const types_1 = require("sequelize/types");
+const sequelize_1 = require("sequelize");
 const Notification_1 = require("./Notification");
 const WebSub_1 = require("./WebSub");
 let Subscription = class Subscription extends sequelize_typescript_1.Model {
@@ -23,19 +23,19 @@ let Subscription = class Subscription extends sequelize_typescript_1.Model {
     }
 };
 __decorate([
-    sequelize_typescript_1.Column({ type: types_1.DataTypes.BIGINT.UNSIGNED, primaryKey: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, primaryKey: true }),
     __metadata("design:type", Number)
 ], Subscription.prototype, "id", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: types_1.DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'websub_notification_on_channel' }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'websub_notification_on_channel' }),
     __metadata("design:type", Number)
 ], Subscription.prototype, "discord_channel_id", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: types_1.DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'websub_notification_on_channel' }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'websub_notification_on_channel' }),
     __metadata("design:type", Number)
 ], Subscription.prototype, "sub_id", void 0);
 __decorate([
-    sequelize_typescript_1.HasMany(() => Notification_1.Notification, 'subscription_id'),
+    (0, sequelize_typescript_1.HasMany)(() => Notification_1.Notification, 'subscription_id'),
     __metadata("design:type", Array)
 ], Subscription.prototype, "notifications", void 0);
 __decorate([
@@ -45,7 +45,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], Subscription, "makeId", null);
 Subscription = __decorate([
-    sequelize_typescript_1.Table({ tableName: 'notificatons', createdAt: 'created_at', updatedAt: 'updated_at' })
+    (0, sequelize_typescript_1.Table)({ tableName: 'subscriptions', createdAt: 'created_at', updatedAt: 'updated_at' })
 ], Subscription);
 exports.Subscription = Subscription;
 

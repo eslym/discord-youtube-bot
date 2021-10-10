@@ -17,44 +17,44 @@ const Notification_1 = require("./Notification");
 let YoutubeVideo = class YoutubeVideo extends sequelize_typescript_1.Model {
 };
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.STRING, primaryKey: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, primaryKey: true }),
     __metadata("design:type", String)
 ], YoutubeVideo.prototype, "video_id", void 0);
 __decorate([
-    sequelize_typescript_1.ForeignKey(() => WebSub_1.WebSub),
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, allowNull: false }),
+    (0, sequelize_typescript_1.ForeignKey)(() => WebSub_1.WebSub),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, allowNull: false }),
     __metadata("design:type", Number)
 ], YoutubeVideo.prototype, "sub_id", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.STRING, allowNull: false }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false }),
     __metadata("design:type", String)
 ], YoutubeVideo.prototype, "youtube_channel", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
     __metadata("design:type", Date)
 ], YoutubeVideo.prototype, "live_at", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
     __metadata("design:type", Date)
 ], YoutubeVideo.prototype, "deleted_at", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
     __metadata("design:type", Date)
 ], YoutubeVideo.prototype, "created_at", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
     __metadata("design:type", Date)
 ], YoutubeVideo.prototype, "updated_at", void 0);
 __decorate([
-    sequelize_typescript_1.BelongsTo(() => WebSub_1.WebSub, { foreignKey: 'sub_id', onDelete: 'cascade', onUpdate: 'restrict' }),
+    (0, sequelize_typescript_1.BelongsTo)(() => WebSub_1.WebSub, { foreignKey: 'sub_id', onDelete: 'cascade', onUpdate: 'restrict' }),
     __metadata("design:type", WebSub_1.WebSub)
 ], YoutubeVideo.prototype, "subscription", void 0);
 __decorate([
-    sequelize_typescript_1.HasMany(() => Notification_1.Notification, 'video_id'),
+    (0, sequelize_typescript_1.HasMany)(() => Notification_1.Notification, 'video_id'),
     __metadata("design:type", Array)
 ], YoutubeVideo.prototype, "notifications", void 0);
 YoutubeVideo = __decorate([
-    sequelize_typescript_1.Table({ tableName: 'youtube_videos', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin' })
+    (0, sequelize_typescript_1.Table)({ tableName: 'youtube_videos', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin' })
 ], YoutubeVideo);
 exports.YoutubeVideo = YoutubeVideo;
 

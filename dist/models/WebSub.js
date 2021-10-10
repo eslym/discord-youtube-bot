@@ -56,7 +56,7 @@ let WebSub = class WebSub extends sequelize_typescript_1.Model {
             try {
                 let res = yield fetch(this.rss_url);
                 let xml = yield res.text();
-                let data = yield xml2js_1.parseStringPromise(xml);
+                let data = yield (0, xml2js_1.parseStringPromise)(xml);
                 return data.feed.title;
             }
             catch (_) {
@@ -81,39 +81,39 @@ let WebSub = class WebSub extends sequelize_typescript_1.Model {
     }
 };
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, primaryKey: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, primaryKey: true }),
     __metadata("design:type", Number)
 ], WebSub.prototype, "id", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.STRING, allowNull: false }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false }),
     __metadata("design:type", String)
 ], WebSub.prototype, "youtube_channel", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.STRING, allowNull: false }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false }),
     __metadata("design:type", String)
 ], WebSub.prototype, "secret", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.TEXT, allowNull: false }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.TEXT, allowNull: false }),
     __metadata("design:type", String)
 ], WebSub.prototype, "message", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
     __metadata("design:type", Date)
 ], WebSub.prototype, "created_at", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
     __metadata("design:type", Date)
 ], WebSub.prototype, "updated_at", void 0);
 __decorate([
-    sequelize_typescript_1.Column({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
     __metadata("design:type", Date)
 ], WebSub.prototype, "expires_at", void 0);
 __decorate([
-    sequelize_typescript_1.HasMany(() => YoutubeVideo_1.YoutubeVideo, { foreignKey: 'sub_id' }),
+    (0, sequelize_typescript_1.HasMany)(() => YoutubeVideo_1.YoutubeVideo, { foreignKey: 'sub_id' }),
     __metadata("design:type", Array)
 ], WebSub.prototype, "videos", void 0);
 __decorate([
-    sequelize_typescript_1.HasMany(() => Subscription_1.Subscription, { foreignKey: 'sub_id' }),
+    (0, sequelize_typescript_1.HasMany)(() => Subscription_1.Subscription, { foreignKey: 'sub_id' }),
     __metadata("design:type", Array)
 ], WebSub.prototype, "subscriptions", void 0);
 __decorate([
@@ -123,7 +123,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], WebSub, "makeId", null);
 WebSub = __decorate([
-    sequelize_typescript_1.Table({ tableName: 'web_subs', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin' })
+    (0, sequelize_typescript_1.Table)({ tableName: 'web_subs', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin' })
 ], WebSub);
 exports.WebSub = WebSub;
 

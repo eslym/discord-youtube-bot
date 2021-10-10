@@ -14,7 +14,7 @@ function merge(target, source) {
     Object.assign(target || {}, source);
     return target;
 }
-const configFilePath = paths_1.configPath('config.yml');
+const configFilePath = (0, paths_1.configPath)('config.yml');
 let config = {};
 function reload() {
     config = YAML.parse(fs.readFileSync(configFilePath + '.example').toString('utf8'));
@@ -28,9 +28,9 @@ function get(path = '$', def = undefined) {
     if (res instanceof Array) {
         switch (res.length) {
             case 0:
-                return undefined;
+                return def;
             case 1:
-                return res[0];
+                return res[0] === undefined ? def : res[0];
             default:
                 return res;
         }
@@ -38,5 +38,6 @@ function get(path = '$', def = undefined) {
     return res === undefined ? def : res;
 }
 exports.get = get;
+reload();
 
 //# sourceMappingURL=config.js.map

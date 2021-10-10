@@ -3,7 +3,7 @@ import { Subscription } from "./Subscription";
 import { YoutubeVideo } from "./YoutubeVideo";
 import {DataTypes} from "sequelize";
 
-@Table({tableName: 'notificatons', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
+@Table({tableName: 'notifications', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
 export class Notification extends Model<Notification>{
     
     @Column({type: DataTypes.BIGINT.UNSIGNED, primaryKey: true})
