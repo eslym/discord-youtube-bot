@@ -38,8 +38,13 @@ sql_1.sequelize.addModels([
     server_1.server.listen(config.get('websub.port', config.get('websub.host')), () => {
         logger_1.logger.info('Websub listener ready.');
     });
+    yield (0, bot_1.setupCommands)();
+    logger_1.logger.info('Command refreshed.');
     yield bot_1.bot.login(config.get('discord.token'));
     logger_1.logger.info('Discord bot ready.');
-}))().catch(e => logger_1.logger.error(e));
+}))().catch(e => {
+    logger_1.logger.error(e);
+    process.exit(1);
+});
 
 //# sourceMappingURL=index.js.map

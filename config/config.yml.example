@@ -1,4 +1,5 @@
 discord:
+  appId: ""
   token: ""
 youtube:
   key: ""

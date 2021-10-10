@@ -9,7 +9,7 @@ import {RolePermission} from "./models/RolePermission";
 import {MemberPermission} from "./models/MemberPermission";
 import {server} from "./express/server";
 import {google} from "googleapis";
-import {bot} from "./bot";
+import {bot, setupCommands} from "./bot";
 
 sql.addModels([
     Notification,
@@ -29,6 +29,11 @@ sql.addModels([
     server.listen(config.get('websub.port', config.get('websub.host')), ()=>{
         logger.info('Websub listener ready.');
     });
+    await setupCommands();
+    logger.info('Command refreshed.')
     await bot.login(config.get('discord.token'));
     logger.info('Discord bot ready.');
-})().catch(e => logger.error(e));
+})().catch(e => {
+    logger.error(e);
+    process.exit(1);
+});

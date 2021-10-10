@@ -27,6 +27,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
+    "@discordjs/builders": "^0.6.0",
     "@discordjs/rest": "^0.1.0-canary.0",
     "ansi-escape-sequences": "^6.1.1",
     "axios": "^0.22.0",
