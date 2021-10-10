@@ -1,12 +1,12 @@
 import {BeforeValidate, Column, HasMany, Model, Table} from "sequelize-typescript";
 import {DataTypes} from "sequelize";
-import {parseStringPromise as parsexml} from "xml2js";
 import {SnowflakeUtil} from "discord.js";
 import crypto = require("crypto");
 import {YoutubeVideo} from "./YoutubeVideo";
-import { Subscription } from "./Subscription";
-
-const fetch = require("node-fetch");
+import {Subscription} from "./Subscription";
+import axios from "axios";
+import {get as config} from "../config";
+import {google, youtube_v3} from "googleapis";
 
 @Table({tableName: 'web_subs', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
 export class WebSub extends Model<WebSub> {
@@ -55,23 +55,13 @@ export class WebSub extends Model<WebSub> {
         return url.toString();
     }
 
-    public get rss_url(): string {
-        let url = new URL('https://www.youtube.com/feeds/videos.xml');
-        let params = new URLSearchParams([['channel_id', this.youtube_channel]]);
-        url.search = params.toString();
-        return url.toString();
-    }
-
-    public get youtube_url(): string {
-        return `https://www.youtube.com/channel/${this.youtube_channel}`;
-    }
-
-    public async getTitle(): Promise<string | null> {
-        try {
-            let res = await fetch(this.rss_url);
-            let xml = await res.text();
-            let data = await parsexml(xml);
-            return data.feed.title;
+    public async fetchSnippet(): Promise<youtube_v3.Schema$Channel>{
+        try{
+            let res = await google.youtube('v3').channels.list({
+                id: [this.youtube_channel],
+                part: ['snippet'],
+            });
+            return res.data.items[0];
         } catch (_) {
             return null;
         }
@@ -79,15 +69,13 @@ export class WebSub extends Model<WebSub> {
 
     public async subscribe(mode: 'subscribe' | 'unsubscribe' = 'subscribe') {
         let data = new URLSearchParams();
-        data.append('hub.callback', `${process.env.WEBSUB_CALLBACK}/${this.id}`);
+        data.append('hub.callback', `${config('websub.url')}/websub/${this.id}`);
         data.append('hub.mode', mode);
         data.append('hub.topic', this.topic_url);
         data.append('hub.secret', this.secret);
-        await fetch('https://pubsubhubbub.appspot.com/subscribe', {
-            method: 'post',
-            body: data,
-        }).catch((_) => {
-            console.error("Failed to subscribe " + this.topic_url);
-        });
+        await axios.post('https://pubsubhubbub.appspot.com/subscribe', data)
+            .catch((_) => {
+                console.error("Failed to subscribe " + this.topic_url);
+            });
     }
 }

@@ -27,8 +27,11 @@
   },
   "dependencies": {
     "ansi-escape-sequences": "^6.1.1",
+    "axios": "^0.22.0",
+    "concat-stream": "^2.0.0",
     "discord.js": "^13.2.0",
     "express": "^4.17.1",
+    "googleapis": "^88.2.0",
     "jsonpath": "^1.1.1",
     "moment": "^2.29.1",
     "mysql2": "^2.3.0",
@@ -37,7 +40,6 @@
     "sequelize": "^5.22.4",
     "sequelize-typescript": "^1.1.0",
     "xml2js": "^0.4.23",
-    "yaml": "^1.10.2",
-    "youtube-api": "^3.0.1"
+    "yaml": "^1.10.2"
   }
 }

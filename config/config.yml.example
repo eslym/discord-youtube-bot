@@ -1,5 +1,11 @@
 discord:
   token: ""
+youtube:
+  key: ""
+websub:
+  url: "http://localhost"
+  host: 127.0.0.1
+  port: 8080
 database:
   driver: mysql
   host: 127.0.0.1
