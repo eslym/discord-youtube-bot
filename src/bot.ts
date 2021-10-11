@@ -54,20 +54,16 @@ export async function setupCommands() {
 async function setGuildCommandPermissions(guild: Guild, cmds: Collection<Snowflake, ApplicationCommand<{ guild: GuildResolvable }>>) {
     if (!guild.commands) return;
     for (let command of cmds.values()) {
-        try {
-            let permissions: ApplicationCommandPermissionData[] = [
-                {
-                    id: guild.ownerId,
-                    type: 'USER',
-                    permission: true,
-                }
-            ];
-            await command.permissions.add({
-                guild, permissions
-            });
-        } catch (err) {
-            logger.warn(`Failed to set permissions for /${command.name} on ${guild.name}`);
-        }
+        let permissions: ApplicationCommandPermissionData[] = [
+            {
+                id: guild.ownerId,
+                type: 'USER',
+                permission: true,
+            }
+        ];
+        await command.permissions.add({
+            guild, permissions
+        }).catch(err => logger.warn(`Failed to set permissions for /${command.name} on ${guild.name}`));
     }
 }
 
@@ -93,7 +89,7 @@ bot.on('ready', () => {
 bot.on('interactionCreate', (interaction) => {
     if (interaction.isCommand() && interaction.commandName === 'youtube') {
         let cmd = interaction.options.getSubcommand(true);
-        logger.info(`${interaction.user.tag}:${interaction.user.id} run a command "/${interaction.commandName} ${cmd}"`)
+        logger.info(`${interaction.user.tag}:${interaction.user.id} run command "/${interaction.commandName} ${cmd}"`)
         commands[cmd].handle(interaction).catch(logger.error);
     }
 });
