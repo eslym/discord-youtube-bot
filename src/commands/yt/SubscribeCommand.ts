@@ -1,10 +1,11 @@
 import {SlashCommandSubcommandBuilder} from "@discordjs/builders";
 import {CommandInteraction, TextChannel} from "discord.js";
-import {WebSub} from "../models/WebSub";
-import {Subscription} from "../models/Subscription";
-import {embed} from "../utils/embed";
+import {WebSub} from "../../models/WebSub";
+import {Subscription} from "../../models/Subscription";
+import {embed} from "../../utils/embed";
+import {SubCommand} from "../CommandManager";
 
-export const SubscribeCommand = {
+export const SubscribeCommand: SubCommand = {
     definition: new SlashCommandSubcommandBuilder()
         .setName('sub')
         .setDescription('Subscribe a youtube channel for this text channel.')

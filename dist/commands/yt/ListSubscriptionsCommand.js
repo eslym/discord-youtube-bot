@@ -9,16 +9,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ListCommand = void 0;
+exports.ListSubscriptionsCommand = void 0;
 const builders_1 = require("@discordjs/builders");
 const discord_js_1 = require("discord.js");
-const WebSub_1 = require("../models/WebSub");
-const Subscription_1 = require("../models/Subscription");
-const embed_1 = require("../utils/embed");
+const WebSub_1 = require("../../models/WebSub");
+const Subscription_1 = require("../../models/Subscription");
+const embed_1 = require("../../utils/embed");
 const googleapis_1 = require("googleapis");
-exports.ListCommand = {
+exports.ListSubscriptionsCommand = {
     definition: new builders_1.SlashCommandSubcommandBuilder()
-        .setName('subscriptions')
+        .setName('ls')
         .setDescription('List the subscriptions for current channel.'),
     handle(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -28,7 +28,7 @@ exports.ListCommand = {
             let subs = yield WebSub_1.WebSub.findAll({
                 include: [Subscription_1.Subscription],
                 where: {
-                    '$Subscription.discord_channel_id$': interaction.channelId
+                    '$subscriptions.discord_channel_id$': interaction.channelId
                 }
             });
             if (subs.length === 0) {
@@ -59,7 +59,7 @@ exports.ListCommand = {
             menu.setPlaceholder('Select a channel to view details');
             menu.setOptions(options);
             let msg = yield interaction.editReply({
-                embeds: [embed_1.embed.info(`Subscriptions for "${interaction.channel}":`)],
+                embeds: [embed_1.embed.info(`Subscriptions for ${interaction.channel}:`)],
                 components: [new discord_js_1.MessageActionRow().setComponents(menu)]
             });
             let message = yield interaction.channel.messages.fetch(msg.id);
@@ -81,7 +81,7 @@ exports.ListCommand = {
                 menu.setPlaceholder("Expired.");
                 menu.setDisabled(true);
                 message.edit({
-                    embeds: [embed_1.embed.info(`Subscriptions for "${interaction.channel}":`)],
+                    embeds: [embed_1.embed.info(`Subscriptions for ${interaction.channel}:`)],
                     components: [new discord_js_1.MessageActionRow().setComponents(menu)]
                 });
             });
@@ -89,4 +89,4 @@ exports.ListCommand = {
     }
 };
 
-//# sourceMappingURL=ListCommand.js.map
+//# sourceMappingURL=ListSubscriptionsCommand.js.map

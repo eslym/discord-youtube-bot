@@ -11,19 +11,16 @@ import {
 import {REST} from "@discordjs/rest";
 import {Routes} from "discord-api-types/v9";
 import {get as config} from "./config";
-import {SlashCommandBuilder} from "@discordjs/builders";
-import {SearchCommand} from "./commands/SearchCommand";
 import {logger} from "./logger";
-import {SubscribeCommand} from "./commands/SubscribeCommand";
-import {UnsubscribeCommand} from "./commands/UnsubscribeCommand";
 import {Notification} from "./models/Notification";
 import {Op} from "sequelize";
 import {YoutubeVideo} from "./models/YoutubeVideo";
 import {google, youtube_v3} from "googleapis";
+import {CommandManager} from "./commands/CommandManager";
+import {YoutubeCommand} from "./commands/YoutubeCommand";
 import cron = require('node-cron');
 import Schema$VideoSnippet = youtube_v3.Schema$VideoSnippet;
 import Dict = NodeJS.Dict;
-import {SubscriptionsCommand} from "./commands/SubscriptionsCommand";
 
 let intents = new Intents();
 
@@ -40,25 +37,13 @@ export const bot = new Client({intents});
 let client = new REST({version: '9'});
 client.setToken(config('discord.token'));
 
-let commands = {
-    'search': SearchCommand,
-    'sub': SubscribeCommand,
-    'remove': UnsubscribeCommand,
-    'ls': SubscriptionsCommand,
-};
+CommandManager.addCommand(YoutubeCommand);
 
 export async function setupCommands() {
     const appId = config('discord.appId')
     let route = Routes.applicationCommands(appId);
-    let command = new SlashCommandBuilder()
-        .setDefaultPermission(false)
-        .setName('yt')
-        .setDescription('Youtube notification services');
-    Object.values(commands).forEach(c => {
-        command.addSubcommand(c.definition);
-    });
     await client.put(route, {
-        body: [command.toJSON()]
+        body: CommandManager.getDefinitions()
     });
 }
 
@@ -141,9 +126,7 @@ bot.on('ready', () => {
 });
 
 bot.on('interactionCreate', (interaction) => {
-    if (interaction.isCommand() && interaction.commandName === 'yt') {
-        let cmd = interaction.options.getSubcommand(true);
-        logger.info(`${interaction.user.tag}:${interaction.user.id} run command "/${interaction.commandName} ${cmd}"`)
-        commands[cmd].handle(interaction).catch(logger.error);
+    if (interaction.isCommand()) {
+        CommandManager.handle(interaction).catch(logger.error);
     }
 });

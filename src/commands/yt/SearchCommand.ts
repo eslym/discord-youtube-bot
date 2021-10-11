@@ -2,10 +2,11 @@ import {SlashCommandSubcommandBuilder} from "@discordjs/builders";
 import {CommandInteraction, MessageActionRow, MessageEmbed, MessageSelectMenu} from "discord.js";
 import {google, youtube_v3} from "googleapis";
 import {MessageComponentTypes} from "discord.js/typings/enums";
-import {embed} from "../utils/embed";
+import {embed} from "../../utils/embed";
+import {SubCommand} from "../CommandManager";
 import Dict = NodeJS.Dict;
 
-export const SearchCommand = {
+export const SearchCommand: SubCommand = {
     definition: new SlashCommandSubcommandBuilder()
         .setName('search')
         .setDescription('Search youtube channel')

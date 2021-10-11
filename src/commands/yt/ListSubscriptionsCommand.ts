@@ -6,15 +6,16 @@ import {
     MessageSelectMenu,
     MessageSelectOptionData,
 } from "discord.js";
-import {WebSub} from "../models/WebSub";
-import {Subscription} from "../models/Subscription";
-import {embed} from "../utils/embed";
+import {WebSub} from "../../models/WebSub";
+import {Subscription} from "../../models/Subscription";
+import {embed} from "../../utils/embed";
 import {google, youtube_v3} from "googleapis";
 import {MessageComponentTypes} from "discord.js/typings/enums";
+import {SubCommand} from "../CommandManager";
 import Dict = NodeJS.Dict;
 import Schema$ChannelSnippet = youtube_v3.Schema$ChannelSnippet;
 
-export const SubscriptionsCommand = {
+export const ListSubscriptionsCommand: SubCommand = {
     definition: new SlashCommandSubcommandBuilder()
         .setName('ls')
         .setDescription('List the subscriptions for current channel.'),

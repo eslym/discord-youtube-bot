@@ -1,9 +1,11 @@
-import {SnowflakeUtil, TextChannel} from "discord.js";
+import {SnowflakeUtil, TextBasedChannels, TextChannel} from "discord.js";
 import {BeforeValidate, Column, HasMany, Model, Table} from "sequelize-typescript";
 import {DataTypes} from "sequelize";
 import {Notification} from "./Notification";
 import {WebSub} from "./WebSub";
 import {bot} from "../bot";
+import {logger} from "../logger";
+import {channel as ch} from "../utils/channel";
 import moment = require("moment");
 
 @Table({tableName: 'subscriptions', createdAt: 'created_at', updatedAt: 'updated_at'})
@@ -42,26 +44,27 @@ export class Subscription extends Model<Subscription>{
             notification = this.mention + notification;
         }
         await channel.send(notification);
+        logger.info(`Video notification from ${channel_title} to ${ch.name(channel)}.`);
     }
 
     public async notifyReschedule(video_url: string, channel_title: string, live: Date){
-        let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextChannel;
+        let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextBasedChannels;
         let schedule = moment(live).format("D MMM YYYY, HH:MM");
         let notification = `${channel_title} re-scheduled a live streaming to ${schedule}\n${video_url}`;
         if(this.mention) {
             notification = this.mention + notification;
         }
         await channel.send(notification);
+        logger.info(`Re-schedule notification from ${channel_title} to ${ch.name(channel)}.`);
     }
 
     public async notifyStarting(video_url: string, channel_title: string){
-        let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextChannel;
+        let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextBasedChannels;
         let notification = `${channel_title} is gonna to start a live streaming.\n${video_url}`;
         if(this.mention) {
             notification = this.mention + notification;
         }
         await channel.send(notification);
+        logger.info(`Live starting notification from ${channel_title} to ${ch.name(channel)}.`);
     }
-
-
 }

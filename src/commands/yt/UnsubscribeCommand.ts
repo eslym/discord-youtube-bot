@@ -1,11 +1,12 @@
 import {SlashCommandSubcommandBuilder} from "@discordjs/builders";
 import {CommandInteraction, TextChannel} from "discord.js";
-import {WebSub} from "../models/WebSub";
-import {embed} from "../utils/embed";
-import {Subscription} from "../models/Subscription";
-import {Notification} from "../models/Notification";
+import {WebSub} from "../../models/WebSub";
+import {embed} from "../../utils/embed";
+import {Subscription} from "../../models/Subscription";
+import {Notification} from "../../models/Notification";
+import {SubCommand} from "../CommandManager";
 
-export const UnsubscribeCommand = {
+export const UnsubscribeCommand: SubCommand = {
     definition: new SlashCommandSubcommandBuilder()
         .setName('remove')
         .setDescription('Unsubscribe a youtube channel from this text channel.')

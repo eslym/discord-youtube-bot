@@ -9,57 +9,45 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SubscriptionsCommand = void 0;
+exports.SearchCommand = void 0;
 const builders_1 = require("@discordjs/builders");
 const discord_js_1 = require("discord.js");
-const WebSub_1 = require("../models/WebSub");
-const Subscription_1 = require("../models/Subscription");
-const embed_1 = require("../utils/embed");
 const googleapis_1 = require("googleapis");
-exports.SubscriptionsCommand = {
+const embed_1 = require("../../utils/embed");
+exports.SearchCommand = {
     definition: new builders_1.SlashCommandSubcommandBuilder()
-        .setName('ls')
-        .setDescription('List the subscriptions for current channel.'),
+        .setName('search')
+        .setDescription('Search youtube channel')
+        .addStringOption(opt => opt.setName('keyword')
+        .setDescription('Keyword to for searching channel')
+        .setRequired(true)),
     handle(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield interaction.reply({
-                embeds: [embed_1.embed.log(`Querying subscriptions for ${interaction.channel}.`)]
+            let keyword = interaction.options.getString('keyword');
+            yield interaction.reply({ embeds: [embed_1.embed.log(`Searching on "${keyword}" on youtube.`)] });
+            let res = yield googleapis_1.google.youtube('v3').search.list({
+                q: keyword, type: ['channel'], part: ['snippet', 'id'], maxResults: 10
             });
-            let subs = yield WebSub_1.WebSub.findAll({
-                include: [Subscription_1.Subscription],
-                where: {
-                    '$subscriptions.discord_channel_id$': interaction.channelId
-                }
-            });
-            if (subs.length === 0) {
-                yield interaction.editReply({
-                    embeds: [embed_1.embed.warn(`No subscriptions for ${interaction.channel}.`)]
-                });
+            if (res.data.pageInfo.totalResults === 0) {
+                yield interaction.editReply({ embeds: [embed_1.embed.warn(`No search result for "${keyword}" :(`)] });
                 return;
             }
-            let res = yield googleapis_1.google.youtube('v3').channels.list({
-                part: ['id', 'snippet'],
-                id: subs.map(s => s.youtube_channel),
-                maxResults: subs.length,
-            });
             let channels = {};
-            let options = [];
-            for (let channel of res.data.items) {
-                options.push({
-                    label: channel.snippet.title,
-                    description: channel.snippet.description.length > 100 ?
-                        channel.snippet.description.slice(0, 97) + '...' :
-                        channel.snippet.description,
-                    value: channel.id
-                });
-                channels[channel.id] = channel.snippet;
-            }
             let menu = new discord_js_1.MessageSelectMenu();
-            menu.setCustomId('youtube_subscriptions');
+            menu.setCustomId('youtube_search');
             menu.setPlaceholder('Select a channel to view details');
-            menu.setOptions(options);
+            menu.addOptions(res.data.items.map(item => {
+                channels[item.id.channelId] = item;
+                return {
+                    label: item.snippet.title,
+                    description: item.snippet.description.length > 100 ?
+                        item.snippet.description.slice(0, 97) + '...' :
+                        item.snippet.description,
+                    value: item.id.channelId,
+                };
+            }));
             let msg = yield interaction.editReply({
-                embeds: [embed_1.embed.info(`Subscriptions for ${interaction.channel}:`)],
+                embeds: [embed_1.embed.info(`Search results for "${keyword}":`)],
                 components: [new discord_js_1.MessageActionRow().setComponents(menu)]
             });
             let message = yield interaction.channel.messages.fetch(msg.id);
@@ -70,18 +58,18 @@ exports.SubscriptionsCommand = {
                 let embed = new discord_js_1.MessageEmbed();
                 let channel = channels[imenu.values[0]];
                 embed.setColor('GREEN');
-                embed.setTitle(channel.title);
-                embed.setURL(`https://youtube.com/channel/${imenu.values[0]}`);
-                embed.setThumbnail(channel.thumbnails.default.url);
-                embed.setDescription(channel.description);
-                embed.addField('Channel ID', imenu.values[0]);
+                embed.setTitle(channel.snippet.title);
+                embed.setURL(`https://youtube.com/channel/${channel.id.channelId}`);
+                embed.setThumbnail(channel.snippet.thumbnails.default.url);
+                embed.setDescription(channel.snippet.description);
+                embed.addField('Channel ID', channel.id.channelId);
                 yield imenu.reply({ embeds: [embed] });
             }));
             collector.on('end', () => {
                 menu.setPlaceholder("Expired.");
                 menu.setDisabled(true);
                 message.edit({
-                    embeds: [embed_1.embed.info(`Subscriptions for ${interaction.channel}:`)],
+                    content: `Search results for ${keyword}:`,
                     components: [new discord_js_1.MessageActionRow().setComponents(menu)]
                 });
             });
@@ -89,4 +77,4 @@ exports.SubscriptionsCommand = {
     }
 };
 
-//# sourceMappingURL=SubscriptionsCommand.js.map
+//# sourceMappingURL=SearchCommand.js.map

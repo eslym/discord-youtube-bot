@@ -25,6 +25,8 @@ const sequelize_1 = require("sequelize");
 const Notification_1 = require("./Notification");
 const WebSub_1 = require("./WebSub");
 const bot_1 = require("../bot");
+const logger_1 = require("../logger");
+const channel_1 = require("../utils/channel");
 const moment = require("moment");
 let Subscription = class Subscription extends sequelize_typescript_1.Model {
     static makeId(self) {
@@ -44,6 +46,7 @@ let Subscription = class Subscription extends sequelize_typescript_1.Model {
                 notification = this.mention + notification;
             }
             yield channel.send(notification);
+            logger_1.logger.info(`Video notification from ${channel_title} to ${channel_1.channel.name(channel)}.`);
         });
     }
     notifyReschedule(video_url, channel_title, live) {
@@ -55,6 +58,7 @@ let Subscription = class Subscription extends sequelize_typescript_1.Model {
                 notification = this.mention + notification;
             }
             yield channel.send(notification);
+            logger_1.logger.info(`Re-schedule notification from ${channel_title} to ${channel_1.channel.name(channel)}.`);
         });
     }
     notifyStarting(video_url, channel_title) {
@@ -65,6 +69,7 @@ let Subscription = class Subscription extends sequelize_typescript_1.Model {
                 notification = this.mention + notification;
             }
             yield channel.send(notification);
+            logger_1.logger.info(`Live starting notification from ${channel_title} to ${channel_1.channel.name(channel)}.`);
         });
     }
 };

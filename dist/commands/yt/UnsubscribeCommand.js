@@ -9,21 +9,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SubscribeCommand = void 0;
+exports.UnsubscribeCommand = void 0;
 const builders_1 = require("@discordjs/builders");
-const WebSub_1 = require("../models/WebSub");
-const Subscription_1 = require("../models/Subscription");
-const embed_1 = require("../utils/embed");
-exports.SubscribeCommand = {
+const WebSub_1 = require("../../models/WebSub");
+const embed_1 = require("../../utils/embed");
+const Subscription_1 = require("../../models/Subscription");
+const Notification_1 = require("../../models/Notification");
+exports.UnsubscribeCommand = {
     definition: new builders_1.SlashCommandSubcommandBuilder()
-        .setName('sub')
-        .setDescription('Subscribe a youtube channel for this text channel.')
+        .setName('remove')
+        .setDescription('Unsubscribe a youtube channel from this text channel.')
         .addStringOption(opt => opt.setName('channel_id')
         .setDescription('Youtube channel id to unsubscribe.')
-        .setRequired(true))
-        .addMentionableOption(opt => opt.setName('mention')
-        .setDescription('Mention when received notification.')
-        .setRequired(false)),
+        .setRequired(true)),
     handle(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
             let channel_id = interaction.options.getString('channel_id');
@@ -33,7 +31,6 @@ exports.SubscribeCommand = {
                     youtube_channel: channel_id,
                 }
             });
-            let title;
             if (!websub) {
                 websub = new WebSub_1.WebSub({
                     youtube_channel: channel_id,
@@ -45,33 +42,43 @@ exports.SubscribeCommand = {
                     });
                     return;
                 }
-                yield websub.save();
-                websub.subscribe().then();
-                title = snippet.snippet.title;
+                let title = snippet.snippet.title;
+                yield interaction.reply({
+                    embeds: [embed_1.embed.error(`${channel} does not subscribe ${title}!`)]
+                });
+                return;
             }
-            else {
-                let snippet = yield websub.fetchSnippet();
-                title = snippet.snippet.title;
-            }
-            let sub = yield Subscription_1.Subscription.count({
+            let snippet = yield websub.fetchSnippet();
+            let title = snippet.snippet.title;
+            let sub = yield Subscription_1.Subscription.findOne({
                 where: {
                     sub_id: websub.id,
                     discord_channel_id: channel.id,
                 }
             });
-            if (sub > 0) {
-                yield interaction.reply({ embeds: [embed_1.embed.warn(`${channel} already have this subscription!`)] });
+            if (!sub) {
+                yield interaction.reply({
+                    embeds: [embed_1.embed.error(`${channel} does not subscribe ${title}!`)]
+                });
                 return;
             }
-            let mention = interaction.options.getMentionable('mention');
-            yield Subscription_1.Subscription.create({
-                sub_id: websub.id,
-                discord_channel_id: channel.id,
-                mention: mention === null ? null : mention.toString()
+            yield Notification_1.Notification.destroy({
+                where: {
+                    subscription_id: sub.id,
+                }
             });
-            yield interaction.reply({ embeds: [embed_1.embed.info(`Subscribed ${title} for ${channel}.`)] });
+            yield sub.destroy();
+            let count = yield Subscription_1.Subscription.count({
+                where: {
+                    sub_id: websub.id,
+                }
+            });
+            if (count === 0) {
+                yield websub.subscribe('unsubscribe');
+            }
+            yield interaction.reply({ embeds: [embed_1.embed.info(`Unsubscribed ${title} for ${channel}.`)] });
         });
     }
 };
 
-//# sourceMappingURL=SubscribeCommand.js.map
+//# sourceMappingURL=UnsubscribeCommand.js.map
