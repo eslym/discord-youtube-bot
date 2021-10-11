@@ -69,7 +69,7 @@ export class WebSubController extends BaseController {
         logger.info(`[WebSub] Notification received for ${title}`);
         if(this.request.body.feed['at:deleted-entry'] !== undefined){
             let entry = this.request.body.feed['at:deleted-entry'][0];
-            let id = entry.$.ref;
+            let id = (entry.$.ref as string).split(':').pop();
             let video = await YoutubeVideo.findOne({
                 where: {
                     video_id: id,
@@ -77,10 +77,72 @@ export class WebSubController extends BaseController {
             });
             if(video){
                 video.deleted_at = moment(entry.$.when).toDate();
-                video.save();
+                await video.save();
+                await Notification.destroy({
+                    where: {
+                        video_id: id,
+                    }
+                });
             }
         } else {
-
+            for (let video of this.request.body.feed.entry) {
+                let id = video['yt:videoId'][0] as string;
+                let url = video.link[0].$.href as string;
+                let channelSnippet = await websub.fetchSnippet();
+                let ytVideo = await YoutubeVideo.findByPk(id);
+                if(!ytVideo){
+                    ytVideo = await YoutubeVideo.create({
+                        video_id: id,
+                        sub_id: websub.id,
+                    });
+                    let videoSnippet = await ytVideo.fetchSnippet();
+                    if(videoSnippet.liveStreamingDetails){
+                        if(!videoSnippet.liveStreamingDetails.scheduledStartTime){
+                            continue;
+                        }
+                        let schedule = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);
+                        ytVideo.live_at = schedule.toDate();
+                        ytVideo.save();
+                        for(let sub of await websub.$get('subscriptions')){
+                            await Notification.create({
+                                subscription_id: sub.id,
+                                video_id: id,
+                                scheduled_at: schedule.subtract({minute: 5}).toDate()
+                            });
+                            await sub.notifyPublish(url, channelSnippet.snippet.title, ytVideo.live_at);
+                        }
+                        continue;
+                    }
+                    for(let sub of await websub.$get('subscriptions')){
+                        await sub.notifyPublish(url, channelSnippet.snippet.title);
+                    }
+                    continue;
+                }
+                if(ytVideo.deleted_at){
+                    continue;
+                }
+                let videoSnippet = await ytVideo.fetchSnippet();
+                if(!videoSnippet.liveStreamingDetails || !videoSnippet.liveStreamingDetails.scheduledStartTime){
+                    continue;
+                }
+                let newLive = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);
+                if(!newLive.isSame(ytVideo.live_at)){
+                    ytVideo.live_at = newLive.toDate();
+                    let notifications = await Notification.findAll({
+                        where: {
+                            video_id: id,
+                        }
+                    });
+                    let schedule = newLive.subtract({minute: 5}).toDate();
+                    for (let notification of notifications) {
+                        notification.scheduled_at = schedule;
+                        notification.notified_at = null;
+                        await notification.save();
+                        let sub = await notification.$get('subscription');
+                        await sub.notifyReschedule(url, channelSnippet.snippet.title, ytVideo.live_at);
+                    }
+                }
+            }
         }
     }
 }

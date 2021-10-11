@@ -14,9 +14,6 @@ export class YoutubeVideo extends Model<YoutubeVideo> {
     @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false})
     public sub_id: number;
 
-    @Column({type: DataTypes.STRING, allowNull: false})
-    public youtube_channel: string;
-
     @Column({type: DataTypes.DATE, allowNull: true})
     public live_at: Date;
 

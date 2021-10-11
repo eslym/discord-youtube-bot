@@ -84,7 +84,7 @@ class WebSubController extends BaseController_1.BaseController {
             logger_1.logger.info(`[WebSub] Notification received for ${title}`);
             if (this.request.body.feed['at:deleted-entry'] !== undefined) {
                 let entry = this.request.body.feed['at:deleted-entry'][0];
-                let id = entry.$.ref;
+                let id = entry.$.ref.split(':').pop();
                 let video = yield YoutubeVideo_1.YoutubeVideo.findOne({
                     where: {
                         video_id: id,
@@ -92,10 +92,73 @@ class WebSubController extends BaseController_1.BaseController {
                 });
                 if (video) {
                     video.deleted_at = moment(entry.$.when).toDate();
-                    video.save();
+                    yield video.save();
+                    yield Notification_1.Notification.destroy({
+                        where: {
+                            video_id: id,
+                        }
+                    });
                 }
             }
             else {
+                for (let video of this.request.body.feed.entry) {
+                    let id = video['yt:videoId'][0];
+                    let url = video.link[0].$.href;
+                    let channelSnippet = yield websub.fetchSnippet();
+                    let ytVideo = yield YoutubeVideo_1.YoutubeVideo.findByPk(id);
+                    if (!ytVideo) {
+                        ytVideo = yield YoutubeVideo_1.YoutubeVideo.create({
+                            video_id: id,
+                            sub_id: websub.id,
+                        });
+                        let videoSnippet = yield ytVideo.fetchSnippet();
+                        if (videoSnippet.liveStreamingDetails) {
+                            if (!videoSnippet.liveStreamingDetails.scheduledStartTime) {
+                                continue;
+                            }
+                            let schedule = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);
+                            ytVideo.live_at = schedule.toDate();
+                            ytVideo.save();
+                            for (let sub of yield websub.$get('subscriptions')) {
+                                yield Notification_1.Notification.create({
+                                    subscription_id: sub.id,
+                                    video_id: id,
+                                    scheduled_at: schedule.subtract({ minute: 5 }).toDate()
+                                });
+                                yield sub.notifyPublish(url, channelSnippet.snippet.title, ytVideo.live_at);
+                            }
+                            continue;
+                        }
+                        for (let sub of yield websub.$get('subscriptions')) {
+                            yield sub.notifyPublish(url, channelSnippet.snippet.title);
+                        }
+                        continue;
+                    }
+                    if (ytVideo.deleted_at) {
+                        continue;
+                    }
+                    let videoSnippet = yield ytVideo.fetchSnippet();
+                    if (!videoSnippet.liveStreamingDetails || !videoSnippet.liveStreamingDetails.scheduledStartTime) {
+                        continue;
+                    }
+                    let newLive = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);
+                    if (!newLive.isSame(ytVideo.live_at)) {
+                        ytVideo.live_at = newLive.toDate();
+                        let notifications = yield Notification_1.Notification.findAll({
+                            where: {
+                                video_id: id,
+                            }
+                        });
+                        let schedule = newLive.subtract({ minute: 5 }).toDate();
+                        for (let notification of notifications) {
+                            notification.scheduled_at = schedule;
+                            notification.notified_at = null;
+                            yield notification.save();
+                            let sub = yield notification.$get('subscription');
+                            yield sub.notifyReschedule(url, channelSnippet.snippet.title, ytVideo.live_at);
+                        }
+                    }
+                }
             }
         });
     }

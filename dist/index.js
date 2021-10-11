@@ -19,6 +19,9 @@ const YoutubeVideo_1 = require("./models/YoutubeVideo");
 const server_1 = require("./express/server");
 const googleapis_1 = require("googleapis");
 const bot_1 = require("./bot");
+const cron = require("node-cron");
+const sequelize_1 = require("sequelize");
+const moment = require("moment");
 sql_1.sequelize.addModels([
     Notification_1.Notification,
     Subscription_1.Subscription,
@@ -41,6 +44,21 @@ sql_1.sequelize.addModels([
     googleapis_1.google.options({ auth: config.get('youtube.key') });
     server_1.server.listen(config.get('websub.port', config.get('websub.host')), () => {
         logger_1.logger.info('Websub listener ready.');
+    });
+    // Setup cron for renew websub
+    cron.schedule('*/5 * * * *', () => {
+        WebSub_1.WebSub.findAll({
+            where: {
+                [sequelize_1.Op.or]: [
+                    { expires_at: null },
+                    { expires_at: { [sequelize_1.Op.lte]: moment().add({ hour: 1 }).toDate() } }
+                ]
+            }
+        }).then((subs) => __awaiter(void 0, void 0, void 0, function* () {
+            for (let websub of subs) {
+                yield websub.subscribe();
+            }
+        })).catch(error => logger_1.logger.error(error));
     });
     yield (0, bot_1.setupCommands)();
     logger_1.logger.info('Command refreshed.');

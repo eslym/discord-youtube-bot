@@ -19,8 +19,13 @@ const SearchCommand_1 = require("./commands/SearchCommand");
 const logger_1 = require("./logger");
 const SubscribeCommand_1 = require("./commands/SubscribeCommand");
 const UnsubscribeCommand_1 = require("./commands/UnsubscribeCommand");
+const cron = require("node-cron");
+const Notification_1 = require("./models/Notification");
+const sequelize_1 = require("sequelize");
+const YoutubeVideo_1 = require("./models/YoutubeVideo");
+const googleapis_1 = require("googleapis");
 let intents = new discord_js_1.Intents();
-intents.add(discord_js_1.Intents.FLAGS.GUILDS, discord_js_1.Intents.FLAGS.GUILD_MEMBERS, discord_js_1.Intents.FLAGS.GUILD_INTEGRATIONS, discord_js_1.Intents.FLAGS.GUILD_MESSAGES);
+intents.add(discord_js_1.Intents.FLAGS.GUILDS, discord_js_1.Intents.FLAGS.GUILD_MEMBERS, discord_js_1.Intents.FLAGS.GUILD_INTEGRATIONS, discord_js_1.Intents.FLAGS.GUILD_MESSAGES, discord_js_1.Intents.FLAGS.DIRECT_MESSAGES);
 exports.bot = new discord_js_1.Client({ intents });
 let client = new rest_1.REST({ version: '9' });
 client.setToken((0, config_1.get)('discord.token'));
@@ -51,21 +56,16 @@ function setGuildCommandPermissions(guild, cmds) {
         if (!guild.commands)
             return;
         for (let command of cmds.values()) {
-            try {
-                let permissions = [
-                    {
-                        id: guild.ownerId,
-                        type: 'USER',
-                        permission: true,
-                    }
-                ];
-                yield command.permissions.add({
-                    guild, permissions
-                });
-            }
-            catch (err) {
-                logger_1.logger.warn(`Failed to set permissions for /${command.name} on ${guild.name}`);
-            }
+            let permissions = [
+                {
+                    id: guild.ownerId,
+                    type: 'USER',
+                    permission: true,
+                }
+            ];
+            yield command.permissions.add({
+                guild, permissions
+            }).catch(err => logger_1.logger.warn(`Failed to set permissions for /${command.name} on ${guild.name}`));
         }
     });
 }
@@ -86,11 +86,54 @@ exports.bot.on('ready', () => {
             });
         });
     }))().catch(logger_1.logger.error);
+    cron.schedule('* * * * *', () => {
+        (() => __awaiter(void 0, void 0, void 0, function* () {
+            let notifications = yield Notification_1.Notification.findAll({
+                where: {
+                    notified_at: null,
+                    scheduled_at: {
+                        [sequelize_1.Op.lte]: new Date()
+                    }
+                }
+            });
+            if (notifications.length === 0) {
+                return;
+            }
+            let videos = yield YoutubeVideo_1.YoutubeVideo.findAll({
+                attributes: ['video_id'],
+                where: {
+                    video_id: {
+                        [sequelize_1.Op.in]: notifications.map(n => n.video_id)
+                    }
+                }
+            });
+            let res = yield googleapis_1.google.youtube('v3').videos.list({
+                part: ['snippet', 'id'],
+                id: videos.map(v => v.id),
+                maxResults: videos.length,
+            });
+            let videoData = {};
+            for (let item of res.data.items) {
+                videoData[item.id] = item.snippet;
+            }
+            for (let notification of notifications) {
+                let snippet = videoData[notification.video_id];
+                let url = new URL('https://www.youtube.com/watch');
+                url.searchParams.set('v', notification.video_id);
+                let sub = yield notification.$get('subscription');
+                yield sub.notifyStarting(url.toString(), snippet.channelTitle);
+                notification.notified_at = new Date();
+                notification.save();
+            }
+        }))().catch((error) => {
+            logger_1.logger.error(error);
+        });
+    });
 });
 exports.bot.on('interactionCreate', (interaction) => {
     if (interaction.isCommand() && interaction.commandName === 'youtube') {
         let cmd = interaction.options.getSubcommand(true);
-        logger_1.logger.info(`${interaction.user.tag}:${interaction.user.id} run a command "/${interaction.commandName} ${cmd}"`);
+        logger_1.logger.info(`${interaction.user.tag}:${interaction.user.id} run command "/${interaction.commandName} ${cmd}"`);
         commands[cmd].handle(interaction).catch(logger_1.logger.error);
     }
 });

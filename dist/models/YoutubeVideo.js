@@ -50,10 +50,6 @@ __decorate([
     __metadata("design:type", Number)
 ], YoutubeVideo.prototype, "sub_id", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false }),
-    __metadata("design:type", String)
-], YoutubeVideo.prototype, "youtube_channel", void 0);
-__decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.DATE, allowNull: true }),
     __metadata("design:type", Date)
 ], YoutubeVideo.prototype, "live_at", void 0);

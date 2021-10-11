@@ -8,6 +8,9 @@ import {YoutubeVideo} from "./models/YoutubeVideo";
 import {server} from "./express/server";
 import {google} from "googleapis";
 import {bot, setupCommands} from "./bot";
+import cron = require('node-cron');
+import {Op} from "sequelize";
+import moment = require("moment");
 
 sql.addModels([
     Notification,
@@ -29,9 +32,27 @@ sql.addModels([
         await sql.sync({alter:true});
         logger.info("DB synced.");
     }
+
     google.options({auth: config.get('youtube.key')});
+
     server.listen(config.get('websub.port', config.get('websub.host')), ()=>{
         logger.info('Websub listener ready.');
+    });
+
+    // Setup cron for renew websub
+    cron.schedule('*/5 * * * *', ()=>{
+        WebSub.findAll({
+            where: {
+                [Op.or]: [
+                    {expires_at: null},
+                    {expires_at: {[Op.lte]: moment().add({hour: 1}).toDate()}}
+                ]
+            }
+        }).then(async subs => {
+            for (let websub of subs) {
+                await websub.subscribe();
+            }
+        }).catch(error => logger.error(error));
     });
     await setupCommands();
     logger.info('Command refreshed.')
