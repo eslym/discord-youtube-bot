@@ -19,8 +19,8 @@ const YoutubeVideo_1 = require("./models/YoutubeVideo");
 const server_1 = require("./express/server");
 const googleapis_1 = require("googleapis");
 const bot_1 = require("./bot");
-const cron = require("node-cron");
 const sequelize_1 = require("sequelize");
+const cron = require("node-cron");
 const moment = require("moment");
 sql_1.sequelize.addModels([
     Notification_1.Notification,

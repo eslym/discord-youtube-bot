@@ -1,6 +1,6 @@
-import { Model, Table, Column, ForeignKey, BelongsTo } from "sequelize-typescript";
-import { Subscription } from "./Subscription";
-import { YoutubeVideo } from "./YoutubeVideo";
+import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
+import {Subscription} from "./Subscription";
+import {YoutubeVideo} from "./YoutubeVideo";
 import {DataTypes} from "sequelize";
 
 @Table({tableName: 'notifications', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})

@@ -6,7 +6,7 @@ import {embed} from "../utils/embed";
 
 export const SubscribeCommand = {
     definition: new SlashCommandSubcommandBuilder()
-        .setName('subscribe')
+        .setName('sub')
         .setDescription('Subscribe a youtube channel for this text channel.')
         .addStringOption(
             opt => opt.setName('channel_id')

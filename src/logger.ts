@@ -1,5 +1,5 @@
 import * as ansi from 'ansi-escape-sequences';
-import { Console } from 'console';
+import {Console} from 'console';
 
 type LogFn = (...data: any)=> void;
 type Logger = {log: LogFn, info: LogFn, debug: LogFn, warn: LogFn, error: LogFn}

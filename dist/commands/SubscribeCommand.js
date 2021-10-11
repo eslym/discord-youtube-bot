@@ -16,7 +16,7 @@ const Subscription_1 = require("../models/Subscription");
 const embed_1 = require("../utils/embed");
 exports.SubscribeCommand = {
     definition: new builders_1.SlashCommandSubcommandBuilder()
-        .setName('subscribe')
+        .setName('sub')
         .setDescription('Subscribe a youtube channel for this text channel.')
         .addStringOption(opt => opt.setName('channel_id')
         .setDescription('Youtube channel id to unsubscribe.')

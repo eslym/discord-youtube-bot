@@ -1,5 +1,5 @@
 import * as YAML from 'yaml';
-import { configPath } from './paths';
+import {configPath} from './paths';
 import * as fs from 'fs';
 import * as jp from 'jsonpath';
 

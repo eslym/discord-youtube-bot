@@ -8,8 +8,8 @@ import {YoutubeVideo} from "./models/YoutubeVideo";
 import {server} from "./express/server";
 import {google} from "googleapis";
 import {bot, setupCommands} from "./bot";
-import cron = require('node-cron');
 import {Op} from "sequelize";
+import cron = require('node-cron');
 import moment = require("moment");
 
 sql.addModels([

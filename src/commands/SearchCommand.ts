@@ -1,10 +1,9 @@
 import {SlashCommandSubcommandBuilder} from "@discordjs/builders";
-import {CommandInteraction, MessageActionRow, MessageEmbed, MessageSelectMenu, SnowflakeUtil} from "discord.js";
+import {CommandInteraction, MessageActionRow, MessageEmbed, MessageSelectMenu} from "discord.js";
 import {google, youtube_v3} from "googleapis";
 import {MessageComponentTypes} from "discord.js/typings/enums";
-import {emitKeypressEvents} from "readline";
-import Dict = NodeJS.Dict;
 import {embed} from "../utils/embed";
+import Dict = NodeJS.Dict;
 
 export const SearchCommand = {
     definition: new SlashCommandSubcommandBuilder()
@@ -27,7 +26,7 @@ export const SearchCommand = {
         }
         let channels: Dict<youtube_v3.Schema$SearchResult> = {};
         let menu = new MessageSelectMenu();
-        menu.setCustomId('youtube_subscribe_' + SnowflakeUtil.generate());
+        menu.setCustomId('youtube_search');
         menu.setPlaceholder('Select a channel to view details');
         menu.addOptions(
             res.data.items.map(item => {

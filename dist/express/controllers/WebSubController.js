@@ -11,7 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebSubController = void 0;
 const BaseController_1 = require("./BaseController");
-const crypto = require("crypto");
 const xml2js_1 = require("xml2js");
 const moment = require("moment");
 const logger_1 = require("../../logger");
@@ -20,6 +19,7 @@ const Subscription_1 = require("../../models/Subscription");
 const Notification_1 = require("../../models/Notification");
 const sequelize_1 = require("sequelize");
 const YoutubeVideo_1 = require("../../models/YoutubeVideo");
+const crypto = require("crypto");
 class WebSubController extends BaseController_1.BaseController {
     subscribe() {
         return __awaiter(this, void 0, void 0, function* () {

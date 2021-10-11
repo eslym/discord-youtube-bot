@@ -1,10 +1,10 @@
-import {Express, Router} from "express";
 import * as express from "express";
-import concat = require("concat-stream");
+import {Router} from "express";
 import * as middleware from "./middleware";
 import {controller} from "./controllers/BaseController";
 import {WebSubController} from "./controllers/WebSubController";
 import {HttpException} from "./exceptions/HttpException";
+import concat = require("concat-stream");
 
 declare global {
     namespace Express {

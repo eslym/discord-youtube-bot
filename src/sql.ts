@@ -1,6 +1,6 @@
-import { Sequelize } from "sequelize-typescript";
+import {Sequelize} from "sequelize-typescript";
 import * as config from './config';
-import { logger } from "./logger";
+import {logger} from "./logger";
 import * as moment from 'moment';
 
 export const sequelize: Sequelize = new Sequelize(

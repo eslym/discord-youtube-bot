@@ -17,7 +17,7 @@ const Subscription_1 = require("../models/Subscription");
 const Notification_1 = require("../models/Notification");
 exports.UnsubscribeCommand = {
     definition: new builders_1.SlashCommandSubcommandBuilder()
-        .setName('unsubscribe')
+        .setName('remove')
         .setDescription('Unsubscribe a youtube channel from this text channel.')
         .addStringOption(opt => opt.setName('channel_id')
         .setDescription('Youtube channel id to unsubscribe.')

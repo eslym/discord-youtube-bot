@@ -1,8 +1,8 @@
 import {SnowflakeUtil, TextChannel} from "discord.js";
-import { BeforeValidate, Column, HasMany, Model, Table } from "sequelize-typescript";
-import { DataTypes } from "sequelize";
-import { Notification } from "./Notification";
-import { WebSub } from "./WebSub";
+import {BeforeValidate, Column, HasMany, Model, Table} from "sequelize-typescript";
+import {DataTypes} from "sequelize";
+import {Notification} from "./Notification";
+import {WebSub} from "./WebSub";
 import {bot} from "../bot";
 import moment = require("moment");
 

@@ -1,5 +1,6 @@
 import {
-    ApplicationCommand, ApplicationCommandPermissionData,
+    ApplicationCommand,
+    ApplicationCommandPermissionData,
     Client,
     Collection,
     Guild,
@@ -15,13 +16,14 @@ import {SearchCommand} from "./commands/SearchCommand";
 import {logger} from "./logger";
 import {SubscribeCommand} from "./commands/SubscribeCommand";
 import {UnsubscribeCommand} from "./commands/UnsubscribeCommand";
-import cron = require('node-cron');
 import {Notification} from "./models/Notification";
 import {Op} from "sequelize";
 import {YoutubeVideo} from "./models/YoutubeVideo";
 import {google, youtube_v3} from "googleapis";
+import cron = require('node-cron');
 import Schema$VideoSnippet = youtube_v3.Schema$VideoSnippet;
 import Dict = NodeJS.Dict;
+import {SubscriptionsCommand} from "./commands/SubscriptionsCommand";
 
 let intents = new Intents();
 
@@ -40,8 +42,9 @@ client.setToken(config('discord.token'));
 
 let commands = {
     'search': SearchCommand,
-    'subscribe': SubscribeCommand,
-    'unsubscribe': UnsubscribeCommand,
+    'sub': SubscribeCommand,
+    'remove': UnsubscribeCommand,
+    'ls': SubscriptionsCommand,
 };
 
 export async function setupCommands() {
@@ -49,7 +52,7 @@ export async function setupCommands() {
     let route = Routes.applicationCommands(appId);
     let command = new SlashCommandBuilder()
         .setDefaultPermission(false)
-        .setName('youtube')
+        .setName('yt')
         .setDescription('Youtube notification services');
     Object.values(commands).forEach(c => {
         command.addSubcommand(c.definition);
@@ -71,7 +74,7 @@ async function setGuildCommandPermissions(guild: Guild, cmds: Collection<Snowfla
         ];
         await command.permissions.add({
             guild, permissions
-        }).catch(err => logger.warn(`Failed to set permissions for /${command.name} on ${guild.name}`));
+        }).catch(_ => logger.warn(`Failed to set permissions for /${command.name} on ${guild.name}`));
     }
 }
 
@@ -138,7 +141,7 @@ bot.on('ready', () => {
 });
 
 bot.on('interactionCreate', (interaction) => {
-    if (interaction.isCommand() && interaction.commandName === 'youtube') {
+    if (interaction.isCommand() && interaction.commandName === 'yt') {
         let cmd = interaction.options.getSubcommand(true);
         logger.info(`${interaction.user.tag}:${interaction.user.id} run command "/${interaction.commandName} ${cmd}"`)
         commands[cmd].handle(interaction).catch(logger.error);

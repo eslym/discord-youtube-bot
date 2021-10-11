@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.server = void 0;
-const express_1 = require("express");
 const express = require("express");
-const concat = require("concat-stream");
+const express_1 = require("express");
 const middleware = require("./middleware");
 const BaseController_1 = require("./controllers/BaseController");
 const WebSubController_1 = require("./controllers/WebSubController");
 const HttpException_1 = require("./exceptions/HttpException");
+const concat = require("concat-stream");
 exports.server = express();
 const router = (0, express_1.Router)();
 router.use((req, _, next) => {

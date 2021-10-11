@@ -22,13 +22,13 @@ exports.WebSub = void 0;
 const sequelize_typescript_1 = require("sequelize-typescript");
 const sequelize_1 = require("sequelize");
 const discord_js_1 = require("discord.js");
-const crypto = require("crypto");
 const YoutubeVideo_1 = require("./YoutubeVideo");
 const Subscription_1 = require("./Subscription");
 const axios_1 = require("axios");
 const config_1 = require("../config");
 const googleapis_1 = require("googleapis");
 const logger_1 = require("../logger");
+const crypto = require("crypto");
 let WebSub = class WebSub extends sequelize_typescript_1.Model {
     static makeId(self) {
         if (!self.id) {

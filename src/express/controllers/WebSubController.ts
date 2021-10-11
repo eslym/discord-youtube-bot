@@ -1,5 +1,4 @@
 import {BaseController} from "./BaseController";
-import crypto = require("crypto");
 import {parseStringPromise} from "xml2js";
 import * as moment from "moment";
 import {logger} from "../../logger";
@@ -8,6 +7,7 @@ import {Subscription} from "../../models/Subscription";
 import {Notification} from "../../models/Notification";
 import {Op} from "sequelize";
 import {YoutubeVideo} from "../../models/YoutubeVideo";
+import crypto = require("crypto");
 
 export class WebSubController extends BaseController {
     async subscribe() {

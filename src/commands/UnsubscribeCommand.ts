@@ -7,7 +7,7 @@ import {Notification} from "../models/Notification";
 
 export const UnsubscribeCommand = {
     definition: new SlashCommandSubcommandBuilder()
-        .setName('unsubscribe')
+        .setName('remove')
         .setDescription('Unsubscribe a youtube channel from this text channel.')
         .addStringOption(
             opt => opt.setName('channel_id')
