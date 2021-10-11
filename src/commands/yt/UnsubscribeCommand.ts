@@ -8,7 +8,7 @@ import {cmd} from "../../utils/cmd";
 
 export const UnsubscribeCommand: SubCommand = {
     definition: new SlashCommandSubcommandBuilder()
-        .setName('remove')
+        .setName('unsub')
         .setDescription('Unsubscribe a youtube channel from this text channel.')
         .addStringOption(
             opt => opt.setName('channel_id')
