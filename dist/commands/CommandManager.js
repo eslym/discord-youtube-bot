@@ -9,7 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SubCommandGroupController = exports.SubCommandController = exports.CommandManager = void 0;
+exports.SubCommandController = exports.CommandManager = void 0;
+const builders_1 = require("@discordjs/builders");
 const commands = {};
 var CommandManager;
 (function (CommandManager) {
@@ -40,10 +41,26 @@ class SubCommandController {
         return this;
     }
     addToParent(parent) {
-        Object.values(this._commands).forEach(def => parent.definition.addSubcommand(def.definition));
+        Object.values(this._commands).forEach(def => {
+            if (def.definition instanceof builders_1.SlashCommandSubcommandGroupBuilder) {
+                if (parent.definition instanceof builders_1.SlashCommandBuilder) {
+                    parent.definition.addSubcommandGroup(def.definition);
+                }
+                else {
+                    throw new TypeError('Sub command group can only add to command root.');
+                }
+            }
+            else {
+                parent.definition.addSubcommand(def.definition);
+            }
+        });
     }
     handle(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
+            let group = interaction.options.getSubcommandGroup(false);
+            if (group && this._commands.hasOwnProperty(group)) {
+                return this._commands[group].handle(interaction);
+            }
             let subcommand = interaction.options.getSubcommand(true);
             if (this._commands.hasOwnProperty(subcommand)) {
                 return this._commands[subcommand].handle(interaction);
@@ -52,26 +69,5 @@ class SubCommandController {
     }
 }
 exports.SubCommandController = SubCommandController;
-class SubCommandGroupController {
-    constructor() {
-        this._groups = {};
-    }
-    addGroup(group) {
-        this._groups[group.definition.name] = group;
-        return this;
-    }
-    addToParent(parent) {
-        Object.values(this._groups).forEach(def => parent.definition.addSubcommandGroup(def.definition));
-    }
-    handle(interaction) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let group = interaction.options.getSubcommand(true);
-            if (this._groups.hasOwnProperty(group)) {
-                return this._groups[group].handle(interaction);
-            }
-        });
-    }
-}
-exports.SubCommandGroupController = SubCommandGroupController;
 
 //# sourceMappingURL=CommandManager.js.map

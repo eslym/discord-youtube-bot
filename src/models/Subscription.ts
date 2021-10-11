@@ -67,4 +67,24 @@ export class Subscription extends Model<Subscription>{
         await channel.send(notification);
         logger.info(`Live starting notification from ${channel_title} to ${ch.name(channel)}.`);
     }
+
+    public static async tryFind(channel_id: string, channel: TextBasedChannels){
+        let websub = await WebSub.findOne({
+            where: {
+                youtube_channel: channel_id,
+            }
+        });
+        if (!websub) {
+            websub = new WebSub({
+                youtube_channel: channel_id,
+            });
+        }
+        let subscription = await Subscription.findOne({
+            where: {
+                sub_id: websub.id,
+                discord_channel_id: channel.id,
+            }
+        });
+        return {websub, subscription};
+    }
 }

@@ -1,10 +1,10 @@
 import {SlashCommandSubcommandBuilder} from "@discordjs/builders";
 import {CommandInteraction, TextChannel} from "discord.js";
-import {WebSub} from "../../models/WebSub";
 import {embed} from "../../utils/embed";
 import {Subscription} from "../../models/Subscription";
 import {Notification} from "../../models/Notification";
 import {SubCommand} from "../CommandManager";
+import {cmd} from "../../utils/cmd";
 
 export const UnsubscribeCommand: SubCommand = {
     definition: new SlashCommandSubcommandBuilder()
@@ -17,50 +17,18 @@ export const UnsubscribeCommand: SubCommand = {
         ),
 
     async handle(interaction: CommandInteraction) {
-        let channel_id = interaction.options.getString('channel_id');
         let channel: TextChannel = interaction.channel as TextChannel;
-        let websub = await WebSub.findOne({
-            where: {
-                youtube_channel: channel_id,
-            }
-        });
-        if (!websub) {
-            websub = new WebSub({
-                youtube_channel: channel_id,
-            });
-            let snippet = await websub.fetchSnippet();
-            if (snippet === null) {
-                await interaction.reply({
-                    embeds: [embed.error(`Cannot find youtube channel with ID: \`${channel_id}\`.`)]
-                });
-                return;
-            }
-            let title = snippet.snippet.title;
-            await interaction.reply({
-                embeds: [embed.error(`${channel} does not subscribe ${title}!`)]
-            });
+        let verify = await cmd.verifySubscription(interaction);
+        if(!verify){
             return;
         }
-        let snippet = await websub.fetchSnippet();
-        let title = snippet.snippet.title;
-        let sub = await Subscription.findOne({
-            where: {
-                sub_id: websub.id,
-                discord_channel_id: channel.id,
-            }
-        });
-        if (!sub) {
-            await interaction.reply({
-                embeds: [embed.error(`${channel} does not subscribe ${title}!`)]
-            });
-            return
-        }
+        let {websub, subscription, channelData} = verify;
         await Notification.destroy({
             where: {
-                subscription_id: sub.id,
+                subscription_id: subscription.id,
             }
         });
-        await sub.destroy();
+        await subscription.destroy();
         let count = await Subscription.count({
             where: {
                 sub_id: websub.id,
@@ -69,6 +37,6 @@ export const UnsubscribeCommand: SubCommand = {
         if(count === 0){
             await websub.subscribe('unsubscribe');
         }
-        await interaction.reply({embeds: [embed.info(`Unsubscribed ${title} for ${channel}.`)]})
+        await interaction.reply({embeds: [embed.info(`Unsubscribed ${channelData.snippet.title} for ${channel}.`)]})
     }
 }

@@ -123,7 +123,7 @@ class WebSubController extends BaseController_1.BaseController {
                                 yield Notification_1.Notification.create({
                                     subscription_id: sub.id,
                                     video_id: id,
-                                    scheduled_at: schedule.subtract({ minute: 5 }).toDate()
+                                    scheduled_at: schedule.subtract({ minute: 5 }).startOf('minute').toDate()
                                 });
                                 yield sub.notifyPublish(url, channelSnippet.snippet.title, ytVideo.live_at);
                             }
@@ -149,7 +149,7 @@ class WebSubController extends BaseController_1.BaseController {
                                 video_id: id,
                             }
                         });
-                        let schedule = newLive.subtract({ minute: 5 }).toDate();
+                        let schedule = newLive.subtract({ minute: 5 }).startOf('minute').toDate();
                         for (let notification of notifications) {
                             notification.scheduled_at = schedule;
                             notification.notified_at = null;

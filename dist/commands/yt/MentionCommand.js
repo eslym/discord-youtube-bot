@@ -9,31 +9,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.YoutubeCommand = void 0;
-const CommandManager_1 = require("./CommandManager");
-const SearchCommand_1 = require("./yt/SearchCommand");
-const SubscribeCommand_1 = require("./yt/SubscribeCommand");
-const UnsubscribeCommand_1 = require("./yt/UnsubscribeCommand");
-const ListSubscriptionsCommand_1 = require("./yt/ListSubscriptionsCommand");
+exports.MentionCommand = void 0;
+const CommandManager_1 = require("../CommandManager");
 const builders_1 = require("@discordjs/builders");
-const MentionCommand_1 = require("./yt/MentionCommand");
+const AddMentionCommand_1 = require("./mention/AddMentionCommand");
+const RemoveMentionCommand_1 = require("./mention/RemoveMentionCommand");
+const ClearMentionCommand_1 = require("./mention/ClearMentionCommand");
 const SubCommands = new CommandManager_1.SubCommandController()
-    .addCommand(SearchCommand_1.SearchCommand)
-    .addCommand(SubscribeCommand_1.SubscribeCommand)
-    .addCommand(UnsubscribeCommand_1.UnsubscribeCommand)
-    .addCommand(ListSubscriptionsCommand_1.ListSubscriptionsCommand)
-    .addCommand(MentionCommand_1.MentionCommand);
-exports.YoutubeCommand = {
-    definition: new builders_1.SlashCommandBuilder()
-        .setDefaultPermission(false)
-        .setName('yt')
-        .setDescription('Youtube notification services'),
+    .addCommand(AddMentionCommand_1.AddMentionCommand)
+    .addCommand(RemoveMentionCommand_1.RemoveMentionCommand)
+    .addCommand(ClearMentionCommand_1.ClearMentionCommand);
+exports.MentionCommand = {
+    definition: new builders_1.SlashCommandSubcommandGroupBuilder()
+        .setName('mention')
+        .setDescription('Modify mentions on a notifications'),
     handle(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
             return SubCommands.handle(interaction);
         });
     }
 };
-SubCommands.addToParent(exports.YoutubeCommand);
+SubCommands.addToParent(exports.MentionCommand);
 
-//# sourceMappingURL=YoutubeCommand.js.map
+//# sourceMappingURL=MentionCommand.js.map

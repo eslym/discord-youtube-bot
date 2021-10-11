@@ -17,6 +17,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var Subscription_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Subscription = void 0;
 const discord_js_1 = require("discord.js");
@@ -28,7 +29,7 @@ const bot_1 = require("../bot");
 const logger_1 = require("../logger");
 const channel_1 = require("../utils/channel");
 const moment = require("moment");
-let Subscription = class Subscription extends sequelize_typescript_1.Model {
+let Subscription = Subscription_1 = class Subscription extends sequelize_typescript_1.Model {
     static makeId(self) {
         if (!self.id) {
             self.id = discord_js_1.SnowflakeUtil.generate();
@@ -72,6 +73,27 @@ let Subscription = class Subscription extends sequelize_typescript_1.Model {
             logger_1.logger.info(`Live starting notification from ${channel_title} to ${channel_1.channel.name(channel)}.`);
         });
     }
+    static tryFind(channel_id, channel) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let websub = yield WebSub_1.WebSub.findOne({
+                where: {
+                    youtube_channel: channel_id,
+                }
+            });
+            if (!websub) {
+                websub = new WebSub_1.WebSub({
+                    youtube_channel: channel_id,
+                });
+            }
+            let subscription = yield Subscription_1.findOne({
+                where: {
+                    sub_id: websub.id,
+                    discord_channel_id: channel.id,
+                }
+            });
+            return { websub, subscription };
+        });
+    }
 };
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, primaryKey: true }),
@@ -99,7 +121,7 @@ __decorate([
     __metadata("design:paramtypes", [WebSub_1.WebSub]),
     __metadata("design:returntype", void 0)
 ], Subscription, "makeId", null);
-Subscription = __decorate([
+Subscription = Subscription_1 = __decorate([
     (0, sequelize_typescript_1.Table)({ tableName: 'subscriptions', createdAt: 'created_at', updatedAt: 'updated_at' })
 ], Subscription);
 exports.Subscription = Subscription;
