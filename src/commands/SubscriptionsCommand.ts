@@ -57,7 +57,7 @@ export const SubscriptionsCommand = {
         menu.setPlaceholder('Select a channel to view details');
         menu.setOptions(options);
         let msg = await interaction.editReply({
-            embeds: [embed.info(`Subscriptions for "${interaction.channel}":`)],
+            embeds: [embed.info(`Subscriptions for ${interaction.channel}:`)],
             components: [new MessageActionRow().setComponents(menu)]
         });
         let message = await interaction.channel.messages.fetch(msg.id);
@@ -79,7 +79,7 @@ export const SubscriptionsCommand = {
             menu.setPlaceholder("Expired.");
             menu.setDisabled(true);
             message.edit({
-                embeds: [embed.info(`Subscriptions for "${interaction.channel}":`)],
+                embeds: [embed.info(`Subscriptions for ${interaction.channel}:`)],
                 components: [new MessageActionRow().setComponents(menu)]
             });
         });

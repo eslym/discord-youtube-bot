@@ -59,7 +59,7 @@ exports.SubscriptionsCommand = {
             menu.setPlaceholder('Select a channel to view details');
             menu.setOptions(options);
             let msg = yield interaction.editReply({
-                embeds: [embed_1.embed.info(`Subscriptions for "${interaction.channel}":`)],
+                embeds: [embed_1.embed.info(`Subscriptions for ${interaction.channel}:`)],
                 components: [new discord_js_1.MessageActionRow().setComponents(menu)]
             });
             let message = yield interaction.channel.messages.fetch(msg.id);
@@ -81,7 +81,7 @@ exports.SubscriptionsCommand = {
                 menu.setPlaceholder("Expired.");
                 menu.setDisabled(true);
                 message.edit({
-                    embeds: [embed_1.embed.info(`Subscriptions for "${interaction.channel}":`)],
+                    embeds: [embed_1.embed.info(`Subscriptions for ${interaction.channel}:`)],
                     components: [new discord_js_1.MessageActionRow().setComponents(menu)]
                 });
             });
