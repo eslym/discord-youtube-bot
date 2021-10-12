@@ -33,6 +33,9 @@ exports.RemoveMentionCommand = {
             let mention = interaction.options.getMentionable('mention').toString();
             if (subscription.mention) {
                 subscription.mention = subscription.mention.replace(mention, '');
+                if (subscription.mention === '') {
+                    subscription.mention = null;
+                }
             }
             if (subscription.changed()) {
                 yield subscription.save();
