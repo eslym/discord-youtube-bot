@@ -14,6 +14,7 @@ import {MessageComponentTypes} from "discord.js/typings/enums";
 import {SubCommand} from "../CommandManager";
 import Dict = NodeJS.Dict;
 import Schema$ChannelSnippet = youtube_v3.Schema$ChannelSnippet;
+import {logger} from "../../logger";
 
 export const ListSubscriptionsCommand: SubCommand = {
     definition: new SlashCommandSubcommandBuilder()
@@ -65,7 +66,7 @@ export const ListSubscriptionsCommand: SubCommand = {
         let collector = message.createMessageComponentCollector({
             componentType: MessageComponentTypes.SELECT_MENU, time: 60000
         });
-        collector.on('collect', async (imenu)=>{
+        collector.on('collect', (imenu) => (async ()=>{
             let embed = new MessageEmbed();
             let channel = channels[imenu.values[0]];
             embed.setColor('GREEN');
@@ -75,14 +76,14 @@ export const ListSubscriptionsCommand: SubCommand = {
             embed.setDescription(channel.description);
             embed.addField('Channel ID', imenu.values[0]);
             await imenu.reply({embeds: [embed]});
-        });
+        })().catch(logger.error));
         collector.on('end', ()=>{
             menu.setPlaceholder("Expired.");
             menu.setDisabled(true);
             message.edit({
                 embeds: [embed.info(`Subscriptions for ${interaction.channel}:`)],
                 components: [new MessageActionRow().setComponents(menu)]
-            });
+            }).catch(logger.error);
         });
     }
 }

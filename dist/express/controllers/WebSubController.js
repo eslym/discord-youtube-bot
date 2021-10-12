@@ -81,7 +81,7 @@ class WebSubController extends BaseController_1.BaseController {
             }
             let data = yield websub.fetchSnippet();
             let title = data.snippet.title;
-            logger_1.logger.info(`[WebSub] Notification received for ${title}`);
+            logger_1.logger.info(`[WebSub] Notification received from ${title}`);
             if (this.request.body.feed['at:deleted-entry'] !== undefined) {
                 let entry = this.request.body.feed['at:deleted-entry'][0];
                 let id = entry.$.ref.split(':').pop();
@@ -98,6 +98,7 @@ class WebSubController extends BaseController_1.BaseController {
                             video_id: id,
                         }
                     });
+                    logger_1.logger.info(`Video deleted: ${id}`);
                 }
             }
             else {
@@ -119,13 +120,14 @@ class WebSubController extends BaseController_1.BaseController {
                             let schedule = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);
                             ytVideo.live_at = schedule.toDate();
                             ytVideo.save();
+                            schedule = schedule.subtract({ minute: 5 }).startOf('minute');
                             for (let sub of yield websub.$get('subscriptions')) {
+                                yield sub.notifyPublish(url, channelSnippet.snippet.title, ytVideo.live_at);
                                 yield Notification_1.Notification.create({
                                     subscription_id: sub.id,
                                     video_id: id,
-                                    scheduled_at: schedule.subtract({ minute: 5 }).startOf('minute').toDate()
+                                    scheduled_at: schedule.toDate()
                                 });
-                                yield sub.notifyPublish(url, channelSnippet.snippet.title, ytVideo.live_at);
                             }
                             continue;
                         }
@@ -144,6 +146,7 @@ class WebSubController extends BaseController_1.BaseController {
                     let newLive = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);
                     if (!newLive.isSame(ytVideo.live_at)) {
                         ytVideo.live_at = newLive.toDate();
+                        ytVideo.save();
                         let notifications = yield Notification_1.Notification.findAll({
                             where: {
                                 video_id: id,

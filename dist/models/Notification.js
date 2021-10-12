@@ -14,7 +14,14 @@ const sequelize_typescript_1 = require("sequelize-typescript");
 const Subscription_1 = require("./Subscription");
 const YoutubeVideo_1 = require("./YoutubeVideo");
 const sequelize_1 = require("sequelize");
+const WebSub_1 = require("./WebSub");
+const discord_js_1 = require("discord.js");
 let Notification = class Notification extends sequelize_typescript_1.Model {
+    static makeId(self) {
+        if (!self.id) {
+            self.id = discord_js_1.SnowflakeUtil.generate();
+        }
+    }
 };
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, primaryKey: true }),
@@ -54,6 +61,12 @@ __decorate([
     (0, sequelize_typescript_1.BelongsTo)(() => Subscription_1.Subscription, { foreignKey: 'subscription_id', onDelete: 'cascade', onUpdate: 'restrict' }),
     __metadata("design:type", Subscription_1.Subscription)
 ], Notification.prototype, "subscription", void 0);
+__decorate([
+    sequelize_typescript_1.BeforeValidate,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [WebSub_1.WebSub]),
+    __metadata("design:returntype", void 0)
+], Notification, "makeId", null);
 Notification = __decorate([
     (0, sequelize_typescript_1.Table)({ tableName: 'notifications', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin' })
 ], Notification);

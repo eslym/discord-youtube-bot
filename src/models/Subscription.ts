@@ -37,11 +37,11 @@ export class Subscription extends Model<Subscription>{
         let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextChannel;
         let notification = `${channel_title} has publish a new video.\n${video_url}`;
         if(live){
-            let schedule = moment(live).format("D MMM YYYY, HH:MM");
+            let schedule = moment(live).format("D MMM YYYY, HH:mm");
             notification = `${channel_title} scheduled a live streaming at ${schedule}\n${video_url}`;
         }
         if(this.mention) {
-            notification = this.mention + notification;
+            notification = `${this.mention}\n${notification}`;
         }
         await channel.send(notification);
         logger.info(`Video notification from ${channel_title} to ${ch.name(channel)}.`);
@@ -49,10 +49,10 @@ export class Subscription extends Model<Subscription>{
 
     public async notifyReschedule(video_url: string, channel_title: string, live: Date){
         let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextBasedChannels;
-        let schedule = moment(live).format("D MMM YYYY, HH:MM");
+        let schedule = moment(live).format("D MMM YYYY, HH:mm");
         let notification = `${channel_title} re-scheduled a live streaming to ${schedule}\n${video_url}`;
         if(this.mention) {
-            notification = this.mention + notification;
+            notification = `${this.mention}\n${notification}`;
         }
         await channel.send(notification);
         logger.info(`Re-schedule notification from ${channel_title} to ${ch.name(channel)}.`);
@@ -60,9 +60,9 @@ export class Subscription extends Model<Subscription>{
 
     public async notifyStarting(video_url: string, channel_title: string){
         let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextBasedChannels;
-        let notification = `${channel_title} is gonna to start a live streaming.\n${video_url}`;
+        let notification = `A live streaming from ${channel_title} is starting soon.\n${video_url}`;
         if(this.mention) {
-            notification = this.mention + notification;
+            notification = `${this.mention}\n${notification}`;
         }
         await channel.send(notification);
         logger.info(`Live starting notification from ${channel_title} to ${ch.name(channel)}.`);

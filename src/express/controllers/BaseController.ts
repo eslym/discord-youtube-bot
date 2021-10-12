@@ -1,5 +1,7 @@
 import {NextFunction, Request, Response} from "express";
 import {NotFoundException} from "../exceptions/NotFoundException";
+import {logger} from "../../logger";
+import {HttpException} from "../exceptions/HttpException";
 
 declare type ControllerClass<T extends BaseController> = new (request: Request, response: Response)=>T;
 
@@ -7,7 +9,12 @@ const controllerHandler: ProxyHandler<ControllerClass<BaseController>> = {
     get(target: ControllerClass<BaseController>, p: PropertyKey, _: any): any {
         return (req: Request, res: Response, next: NextFunction)=>{
             let controller = new target(req, res);
-            new Promise((resolve)=>resolve(controller[p]())).catch(next);
+            new Promise((resolve)=>resolve(controller[p]())).catch(err => {
+                if(!(err instanceof HttpException)){
+                    logger.error(err);
+                }
+                next(err);
+            });
         }
     }
 };

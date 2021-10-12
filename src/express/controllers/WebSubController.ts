@@ -66,7 +66,7 @@ export class WebSubController extends BaseController {
         }
         let data = await websub.fetchSnippet();
         let title = data.snippet.title;
-        logger.info(`[WebSub] Notification received for ${title}`);
+        logger.info(`[WebSub] Notification received from ${title}`);
         if(this.request.body.feed['at:deleted-entry'] !== undefined){
             let entry = this.request.body.feed['at:deleted-entry'][0];
             let id = (entry.$.ref as string).split(':').pop();
@@ -83,6 +83,7 @@ export class WebSubController extends BaseController {
                         video_id: id,
                     }
                 });
+                logger.info(`Video deleted: ${id}`);
             }
         } else {
             for (let video of this.request.body.feed.entry) {
@@ -103,13 +104,14 @@ export class WebSubController extends BaseController {
                         let schedule = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);
                         ytVideo.live_at = schedule.toDate();
                         ytVideo.save();
+                        schedule = schedule.subtract({minute: 5}).startOf('minute');
                         for(let sub of await websub.$get('subscriptions')){
+                            await sub.notifyPublish(url, channelSnippet.snippet.title, ytVideo.live_at);
                             await Notification.create({
                                 subscription_id: sub.id,
                                 video_id: id,
-                                scheduled_at: schedule.subtract({minute: 5}).startOf('minute').toDate()
+                                scheduled_at: schedule.toDate()
                             });
-                            await sub.notifyPublish(url, channelSnippet.snippet.title, ytVideo.live_at);
                         }
                         continue;
                     }
@@ -128,6 +130,7 @@ export class WebSubController extends BaseController {
                 let newLive = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);
                 if(!newLive.isSame(ytVideo.live_at)){
                     ytVideo.live_at = newLive.toDate();
+                    ytVideo.save();
                     let notifications = await Notification.findAll({
                         where: {
                             video_id: id,

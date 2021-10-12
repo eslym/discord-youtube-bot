@@ -22,6 +22,7 @@ const googleapis_1 = require("googleapis");
 const CommandManager_1 = require("./commands/CommandManager");
 const YoutubeCommand_1 = require("./commands/YoutubeCommand");
 const cron = require("node-cron");
+const moment = require("moment");
 let intents = new discord_js_1.Intents();
 intents.add(discord_js_1.Intents.FLAGS.GUILDS, discord_js_1.Intents.FLAGS.GUILD_MEMBERS, discord_js_1.Intents.FLAGS.GUILD_INTEGRATIONS, discord_js_1.Intents.FLAGS.GUILD_MESSAGES, discord_js_1.Intents.FLAGS.DIRECT_MESSAGES);
 exports.bot = new discord_js_1.Client({ intents });
@@ -56,6 +57,118 @@ function setGuildCommandPermissions(guild, cmds) {
         }
     });
 }
+function liveCheck() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let videos = yield YoutubeVideo_1.YoutubeVideo.findAll({
+            include: [Notification_1.Notification],
+            where: {
+                live_at: { [sequelize_1.Op.not]: null },
+                deleted_at: null,
+                '$notifications.notified_at$': null,
+            }
+        });
+        if (videos.length === 0)
+            return;
+        let res = yield googleapis_1.google.youtube('v3').videos.list({
+            part: ['liveStreamingDetails', 'snippet', 'id'],
+            id: videos.map(v => v.video_id),
+            maxResults: videos.length,
+        });
+        let map = {};
+        res.data.items.forEach(v => {
+            map[v.id] = v;
+        });
+        for (let video of videos) {
+            let details = map[video.video_id].liveStreamingDetails;
+            if (details.actualStartTime) {
+                yield Notification_1.Notification.update({
+                    notified_at: new Date(),
+                }, {
+                    where: {
+                        video_id: video.video_id,
+                        notified_at: null,
+                    }
+                });
+                continue;
+            }
+            if (!details.scheduledStartTime) {
+                yield Notification_1.Notification.destroy({
+                    where: {
+                        video_id: video.video_id,
+                        notified_at: null,
+                    }
+                });
+                video.live_at = null;
+                video.save();
+                continue;
+            }
+            let live = moment(details.scheduledStartTime);
+            if (!moment(video.live_at).isSame(live)) {
+                video.live_at = live.toDate();
+                video.save();
+                let notifications = yield Notification_1.Notification.findAll({
+                    where: {
+                        video_id: video.video_id,
+                        notified_at: null,
+                    }
+                });
+                let url = new URL('https://www.youtube.com/watch');
+                url.searchParams.set('v', video.video_id);
+                let schedule = live.subtract({ minute: 5 }).startOf('minute').toDate();
+                for (let notification of notifications) {
+                    notification.scheduled_at = schedule;
+                    notification.notified_at = null;
+                    yield notification.save();
+                    let sub = yield notification.$get('subscription');
+                    yield sub.notifyReschedule(url.toString(), map[video.video_id].snippet.channelTitle, video.live_at);
+                }
+            }
+        }
+    });
+}
+function pushLiveNotifications() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let notifications = yield Notification_1.Notification.findAll({
+            where: {
+                notified_at: null,
+                scheduled_at: {
+                    [sequelize_1.Op.lte]: new Date()
+                }
+            }
+        });
+        if (notifications.length === 0) {
+            return;
+        }
+        let videos = yield YoutubeVideo_1.YoutubeVideo.findAll({
+            attributes: ['video_id'],
+            where: {
+                video_id: {
+                    [sequelize_1.Op.in]: notifications.map(n => n.video_id)
+                }
+            }
+        });
+        if (videos.length === 0)
+            return;
+        let res = yield googleapis_1.google.youtube('v3').videos.list({
+            part: ['snippet', 'id'],
+            id: videos.map(v => v.video_id),
+            maxResults: videos.length,
+        });
+        let videoData = {};
+        for (let item of res.data.items) {
+            videoData[item.id] = item.snippet;
+        }
+        for (let notification of notifications) {
+            let snippet = videoData[notification.video_id];
+            let url = new URL('https://www.youtube.com/watch');
+            url.searchParams.set('v', notification.video_id);
+            let sub = yield notification.$get('subscription');
+            yield sub.notifyStarting(url.toString(), snippet.channelTitle);
+            notification.notified_at = new Date();
+            notification.save();
+        }
+    });
+}
 exports.bot.on('ready', () => {
     (() => __awaiter(void 0, void 0, void 0, function* () {
         let guilds = yield exports.bot.guilds.fetch();
@@ -74,47 +187,9 @@ exports.bot.on('ready', () => {
         });
     }))().catch(logger_1.logger.error);
     cron.schedule('* * * * *', () => {
-        (() => __awaiter(void 0, void 0, void 0, function* () {
-            let notifications = yield Notification_1.Notification.findAll({
-                where: {
-                    notified_at: null,
-                    scheduled_at: {
-                        [sequelize_1.Op.lte]: new Date()
-                    }
-                }
-            });
-            if (notifications.length === 0) {
-                return;
-            }
-            let videos = yield YoutubeVideo_1.YoutubeVideo.findAll({
-                attributes: ['video_id'],
-                where: {
-                    video_id: {
-                        [sequelize_1.Op.in]: notifications.map(n => n.video_id)
-                    }
-                }
-            });
-            let res = yield googleapis_1.google.youtube('v3').videos.list({
-                part: ['snippet', 'id'],
-                id: videos.map(v => v.id),
-                maxResults: videos.length,
-            });
-            let videoData = {};
-            for (let item of res.data.items) {
-                videoData[item.id] = item.snippet;
-            }
-            for (let notification of notifications) {
-                let snippet = videoData[notification.video_id];
-                let url = new URL('https://www.youtube.com/watch');
-                url.searchParams.set('v', notification.video_id);
-                let sub = yield notification.$get('subscription');
-                yield sub.notifyStarting(url.toString(), snippet.channelTitle);
-                notification.notified_at = new Date();
-                notification.save();
-            }
-        }))().catch((error) => {
-            logger_1.logger.error(error);
-        });
+        liveCheck()
+            .catch(logger_1.logger.error)
+            .finally(() => pushLiveNotifications().catch(logger_1.logger.error));
     });
 });
 exports.bot.on('interactionCreate', (interaction) => {

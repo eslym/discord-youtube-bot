@@ -1,10 +1,19 @@
-import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
+import {BeforeValidate, BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
 import {Subscription} from "./Subscription";
 import {YoutubeVideo} from "./YoutubeVideo";
 import {DataTypes} from "sequelize";
+import {WebSub} from "./WebSub";
+import {SnowflakeUtil} from "discord.js";
 
 @Table({tableName: 'notifications', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
 export class Notification extends Model<Notification>{
+
+    @BeforeValidate
+    protected static makeId(self: WebSub) {
+        if (!self.id) {
+            self.id = SnowflakeUtil.generate() as any;
+        }
+    }
     
     @Column({type: DataTypes.BIGINT.UNSIGNED, primaryKey: true})
     public id: number;

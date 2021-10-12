@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.logger = void 0;
 const ansi = require("ansi-escape-sequences");
 const console_1 = require("console");
+const moment = require("moment");
 const _console = new console_1.Console({
     stdout: process.stdout,
     stderr: process.stderr,
@@ -33,7 +34,7 @@ const config = {
 exports.logger = {};
 for (const fn of Object.keys(config)) {
     exports.logger[fn] = function () {
-        config[fn].io.write(`${config[fn].color}[${(new Date()).toISOString()}][${fn.toUpperCase()}] `);
+        config[fn].io.write(`${config[fn].color}[${moment().format('YYYY-MM-DD HH:mm:ss')}][${fn.toUpperCase()}] `);
         _console[fn].apply(_console, arguments);
     };
 }

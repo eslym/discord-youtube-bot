@@ -1,5 +1,6 @@
 import * as ansi from 'ansi-escape-sequences';
 import {Console} from 'console';
+import moment = require("moment");
 
 type LogFn = (...data: any)=> void;
 type Logger = {log: LogFn, info: LogFn, debug: LogFn, warn: LogFn, error: LogFn}
@@ -37,7 +38,7 @@ export const logger: Logger = {} as any;
 
 for (const fn of Object.keys(config)) {
     logger[fn] = function (){
-        config[fn].io.write(`${config[fn].color}[${(new Date()).toISOString()}][${fn.toUpperCase()}] `);
+        config[fn].io.write(`${config[fn].color}[${moment().format('YYYY-MM-DD HH:mm:ss')}][${fn.toUpperCase()}] `);
         _console[fn].apply(_console, arguments);
     }
 }

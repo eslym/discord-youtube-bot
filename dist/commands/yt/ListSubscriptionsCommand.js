@@ -16,6 +16,7 @@ const WebSub_1 = require("../../models/WebSub");
 const Subscription_1 = require("../../models/Subscription");
 const embed_1 = require("../../utils/embed");
 const googleapis_1 = require("googleapis");
+const logger_1 = require("../../logger");
 exports.ListSubscriptionsCommand = {
     definition: new builders_1.SlashCommandSubcommandBuilder()
         .setName('ls')
@@ -66,7 +67,7 @@ exports.ListSubscriptionsCommand = {
             let collector = message.createMessageComponentCollector({
                 componentType: 3 /* SELECT_MENU */, time: 60000
             });
-            collector.on('collect', (imenu) => __awaiter(this, void 0, void 0, function* () {
+            collector.on('collect', (imenu) => (() => __awaiter(this, void 0, void 0, function* () {
                 let embed = new discord_js_1.MessageEmbed();
                 let channel = channels[imenu.values[0]];
                 embed.setColor('GREEN');
@@ -76,14 +77,14 @@ exports.ListSubscriptionsCommand = {
                 embed.setDescription(channel.description);
                 embed.addField('Channel ID', imenu.values[0]);
                 yield imenu.reply({ embeds: [embed] });
-            }));
+            }))().catch(logger_1.logger.error));
             collector.on('end', () => {
                 menu.setPlaceholder("Expired.");
                 menu.setDisabled(true);
                 message.edit({
                     embeds: [embed_1.embed.info(`Subscriptions for ${interaction.channel}:`)],
                     components: [new discord_js_1.MessageActionRow().setComponents(menu)]
-                });
+                }).catch(logger_1.logger.error);
             });
         });
     }

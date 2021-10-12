@@ -40,11 +40,11 @@ let Subscription = Subscription_1 = class Subscription extends sequelize_typescr
             let channel = yield bot_1.bot.channels.fetch(this.discord_channel_id.toString());
             let notification = `${channel_title} has publish a new video.\n${video_url}`;
             if (live) {
-                let schedule = moment(live).format("D MMM YYYY, HH:MM");
+                let schedule = moment(live).format("D MMM YYYY, HH:mm");
                 notification = `${channel_title} scheduled a live streaming at ${schedule}\n${video_url}`;
             }
             if (this.mention) {
-                notification = this.mention + notification;
+                notification = `${this.mention}\n${notification}`;
             }
             yield channel.send(notification);
             logger_1.logger.info(`Video notification from ${channel_title} to ${channel_1.channel.name(channel)}.`);
@@ -53,10 +53,10 @@ let Subscription = Subscription_1 = class Subscription extends sequelize_typescr
     notifyReschedule(video_url, channel_title, live) {
         return __awaiter(this, void 0, void 0, function* () {
             let channel = yield bot_1.bot.channels.fetch(this.discord_channel_id.toString());
-            let schedule = moment(live).format("D MMM YYYY, HH:MM");
+            let schedule = moment(live).format("D MMM YYYY, HH:mm");
             let notification = `${channel_title} re-scheduled a live streaming to ${schedule}\n${video_url}`;
             if (this.mention) {
-                notification = this.mention + notification;
+                notification = `${this.mention}\n${notification}`;
             }
             yield channel.send(notification);
             logger_1.logger.info(`Re-schedule notification from ${channel_title} to ${channel_1.channel.name(channel)}.`);
@@ -65,9 +65,9 @@ let Subscription = Subscription_1 = class Subscription extends sequelize_typescr
     notifyStarting(video_url, channel_title) {
         return __awaiter(this, void 0, void 0, function* () {
             let channel = yield bot_1.bot.channels.fetch(this.discord_channel_id.toString());
-            let notification = `${channel_title} is gonna to start a live streaming.\n${video_url}`;
+            let notification = `A live streaming from ${channel_title} is starting soon.\n${video_url}`;
             if (this.mention) {
-                notification = this.mention + notification;
+                notification = `${this.mention}\n${notification}`;
             }
             yield channel.send(notification);
             logger_1.logger.info(`Live starting notification from ${channel_title} to ${channel_1.channel.name(channel)}.`);

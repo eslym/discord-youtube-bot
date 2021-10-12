@@ -11,11 +11,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseController = exports.controller = void 0;
 const NotFoundException_1 = require("../exceptions/NotFoundException");
+const logger_1 = require("../../logger");
+const HttpException_1 = require("../exceptions/HttpException");
 const controllerHandler = {
     get(target, p, _) {
         return (req, res, next) => {
             let controller = new target(req, res);
-            new Promise((resolve) => resolve(controller[p]())).catch(next);
+            new Promise((resolve) => resolve(controller[p]())).catch(err => {
+                if (!(err instanceof HttpException_1.HttpException)) {
+                    logger_1.logger.error(err);
+                }
+                next(err);
+            });
         };
     }
 };
