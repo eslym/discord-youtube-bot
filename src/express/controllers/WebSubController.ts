@@ -97,7 +97,7 @@ export class WebSubController extends BaseController {
                         sub_id: websub.id,
                     });
                     let videoSnippet = await ytVideo.fetchSnippet();
-                    if(videoSnippet.liveStreamingDetails){
+                    if(videoSnippet.liveStreamingDetails && !videoSnippet.liveStreamingDetails.actualStartTime){
                         if(!videoSnippet.liveStreamingDetails.scheduledStartTime){
                             continue;
                         }
@@ -124,7 +124,11 @@ export class WebSubController extends BaseController {
                     continue;
                 }
                 let videoSnippet = await ytVideo.fetchSnippet();
-                if(!videoSnippet.liveStreamingDetails || !videoSnippet.liveStreamingDetails.scheduledStartTime){
+                if(
+                    !videoSnippet.liveStreamingDetails ||
+                    !videoSnippet.liveStreamingDetails.scheduledStartTime ||
+                    videoSnippet.liveStreamingDetails.actualStartTime
+                ){
                     continue;
                 }
                 let newLive = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);
