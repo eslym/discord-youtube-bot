@@ -24,7 +24,8 @@ exports.ListSubscriptionsCommand = {
     handle(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
             yield interaction.reply({
-                embeds: [embed_1.embed.log(`Querying subscriptions for ${interaction.channel}.`)]
+                embeds: [embed_1.embed.log(`Querying subscriptions for ${interaction.channel}.`)],
+                ephemeral: true,
             });
             let subs = yield WebSub_1.WebSub.findAll({
                 include: [Subscription_1.Subscription],
@@ -68,20 +69,24 @@ exports.ListSubscriptionsCommand = {
                 componentType: 3 /* SELECT_MENU */, time: 60000
             });
             collector.on('collect', (imenu) => (() => __awaiter(this, void 0, void 0, function* () {
-                let embed = new discord_js_1.MessageEmbed();
+                let meta = new discord_js_1.MessageEmbed();
                 let channel = channels[imenu.values[0]];
-                embed.setColor('GREEN');
-                embed.setTitle(channel.title);
-                embed.setURL(`https://youtube.com/channel/${imenu.values[0]}`);
-                embed.setThumbnail(channel.thumbnails.default.url);
-                embed.setDescription(channel.description);
-                embed.addField('Channel ID', imenu.values[0]);
-                yield imenu.reply({ embeds: [embed] });
+                meta.setColor('GREEN');
+                meta.setTitle(channel.title);
+                meta.setURL(`https://youtube.com/channel/${imenu.values[0]}`);
+                meta.setThumbnail(channel.thumbnails.default.url);
+                meta.setDescription(channel.description);
+                meta.addField('Channel ID', imenu.values[0]);
+                yield interaction.editReply({
+                    embeds: [embed_1.embed.info(`Subscriptions for ${interaction.channel}:`)],
+                    components: [new discord_js_1.MessageActionRow().setComponents(menu)]
+                });
+                yield imenu.reply({ embeds: [meta] });
             }))().catch(logger_1.logger.error));
             collector.on('end', () => {
                 menu.setPlaceholder("Expired.");
                 menu.setDisabled(true);
-                message.edit({
+                interaction.editReply({
                     embeds: [embed_1.embed.info(`Subscriptions for ${interaction.channel}:`)],
                     components: [new discord_js_1.MessageActionRow().setComponents(menu)]
                 }).catch(logger_1.logger.error);

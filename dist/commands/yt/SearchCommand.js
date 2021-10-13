@@ -24,7 +24,10 @@ exports.SearchCommand = {
     handle(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
             let keyword = interaction.options.getString('keyword');
-            yield interaction.reply({ embeds: [embed_1.embed.log(`Searching on "${keyword}" on youtube.`)] });
+            yield interaction.reply({
+                embeds: [embed_1.embed.log(`Searching on "${keyword}" on youtube.`)],
+                ephemeral: true
+            });
             let res = yield googleapis_1.google.youtube('v3').search.list({
                 q: keyword, type: ['channel'], part: ['snippet', 'id'], maxResults: 10
             });
@@ -55,21 +58,25 @@ exports.SearchCommand = {
                 componentType: 3 /* SELECT_MENU */, time: 60000
             });
             collector.on('collect', (imenu) => __awaiter(this, void 0, void 0, function* () {
-                let embed = new discord_js_1.MessageEmbed();
+                let meta = new discord_js_1.MessageEmbed();
                 let channel = channels[imenu.values[0]];
-                embed.setColor('GREEN');
-                embed.setTitle(channel.snippet.title);
-                embed.setURL(`https://youtube.com/channel/${channel.id.channelId}`);
-                embed.setThumbnail(channel.snippet.thumbnails.default.url);
-                embed.setDescription(channel.snippet.description);
-                embed.addField('Channel ID', channel.id.channelId);
-                yield imenu.reply({ embeds: [embed] });
+                meta.setColor('GREEN');
+                meta.setTitle(channel.snippet.title);
+                meta.setURL(`https://youtube.com/channel/${channel.id.channelId}`);
+                meta.setThumbnail(channel.snippet.thumbnails.default.url);
+                meta.setDescription(channel.snippet.description);
+                meta.addField('Channel ID', channel.id.channelId);
+                yield interaction.editReply({
+                    embeds: [embed_1.embed.info(`Search results for "${keyword}":`)],
+                    components: [new discord_js_1.MessageActionRow().setComponents(menu)]
+                });
+                yield imenu.reply({ embeds: [meta], ephemeral: true });
             }));
             collector.on('end', () => {
                 menu.setPlaceholder("Expired.");
                 menu.setDisabled(true);
-                message.edit({
-                    content: `Search results for ${keyword}:`,
+                interaction.editReply({
+                    embeds: [embed_1.embed.info(`Search results for "${keyword}":`)],
                     components: [new discord_js_1.MessageActionRow().setComponents(menu)]
                 });
             });

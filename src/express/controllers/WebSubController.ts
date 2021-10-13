@@ -91,29 +91,35 @@ export class WebSubController extends BaseController {
                 let url = video.link[0].$.href as string;
                 let channelSnippet = await websub.fetchSnippet();
                 let ytVideo = await YoutubeVideo.findByPk(id);
+                logger.info(`[WebSub] Video: ${id}`);
                 if(!ytVideo){
                     ytVideo = await YoutubeVideo.create({
                         video_id: id,
                         sub_id: websub.id,
                     });
                     let videoSnippet = await ytVideo.fetchSnippet();
-                    if(videoSnippet.liveStreamingDetails && !videoSnippet.liveStreamingDetails.actualStartTime){
-                        if(!videoSnippet.liveStreamingDetails.scheduledStartTime){
+                    if(!videoSnippet){
+                        continue;
+                    }
+                    if(videoSnippet.liveStreamingDetails){
+                        if(!videoSnippet.liveStreamingDetails.actualStartTime){
+                            if(!videoSnippet.liveStreamingDetails.scheduledStartTime){
+                                continue;
+                            }
+                            let schedule = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);
+                            ytVideo.live_at = schedule.toDate();
+                            ytVideo.save();
+                            schedule = schedule.subtract({minute: 5}).startOf('minute');
+                            for(let sub of await websub.$get('subscriptions')){
+                                await sub.notifyPublish(url, channelSnippet.snippet.title, ytVideo.live_at);
+                                await Notification.create({
+                                    subscription_id: sub.id,
+                                    video_id: id,
+                                    scheduled_at: schedule.toDate()
+                                });
+                            }
                             continue;
                         }
-                        let schedule = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);
-                        ytVideo.live_at = schedule.toDate();
-                        ytVideo.save();
-                        schedule = schedule.subtract({minute: 5}).startOf('minute');
-                        for(let sub of await websub.$get('subscriptions')){
-                            await sub.notifyPublish(url, channelSnippet.snippet.title, ytVideo.live_at);
-                            await Notification.create({
-                                subscription_id: sub.id,
-                                video_id: id,
-                                scheduled_at: schedule.toDate()
-                            });
-                        }
-                        continue;
                     }
                     for(let sub of await websub.$get('subscriptions')){
                         await sub.notifyPublish(url, channelSnippet.snippet.title);
@@ -124,6 +130,9 @@ export class WebSubController extends BaseController {
                     continue;
                 }
                 let videoSnippet = await ytVideo.fetchSnippet();
+                if(!videoSnippet){
+                    continue;
+                }
                 if(
                     !videoSnippet.liveStreamingDetails ||
                     !videoSnippet.liveStreamingDetails.scheduledStartTime ||

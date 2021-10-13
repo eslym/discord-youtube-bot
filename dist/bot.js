@@ -79,6 +79,16 @@ function liveCheck() {
             map[v.id] = v;
         });
         for (let video of videos) {
+            if (!map[video.video_id]) {
+                yield Notification_1.Notification.destroy({
+                    where: {
+                        video_id: video.video_id,
+                    }
+                });
+                video.deleted_at = new Date();
+                video.save();
+                continue;
+            }
             let details = map[video.video_id].liveStreamingDetails;
             if (details.actualStartTime) {
                 yield Notification_1.Notification.update({

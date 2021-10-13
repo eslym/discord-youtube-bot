@@ -17,7 +17,10 @@ export const SearchCommand: SubCommand = {
         ),
     async handle(interaction: CommandInteraction){
         let keyword = interaction.options.getString('keyword');
-        await interaction.reply({embeds: [embed.log(`Searching on "${keyword}" on youtube.`)]});
+        await interaction.reply({
+            embeds: [embed.log(`Searching on "${keyword}" on youtube.`)],
+            ephemeral: true
+        });
         let res = await google.youtube('v3').search.list({
             q: keyword, type: ['channel'], part: ['snippet', 'id'], maxResults: 10
         });
@@ -50,21 +53,25 @@ export const SearchCommand: SubCommand = {
             componentType: MessageComponentTypes.SELECT_MENU, time: 60000
         });
         collector.on('collect', async (imenu)=>{
-            let embed = new MessageEmbed();
+            let meta = new MessageEmbed();
             let channel = channels[imenu.values[0]];
-            embed.setColor('GREEN');
-            embed.setTitle(channel.snippet.title);
-            embed.setURL(`https://youtube.com/channel/${channel.id.channelId}`);
-            embed.setThumbnail(channel.snippet.thumbnails.default.url);
-            embed.setDescription(channel.snippet.description);
-            embed.addField('Channel ID', channel.id.channelId);
-            await imenu.reply({embeds: [embed]});
+            meta.setColor('GREEN');
+            meta.setTitle(channel.snippet.title);
+            meta.setURL(`https://youtube.com/channel/${channel.id.channelId}`);
+            meta.setThumbnail(channel.snippet.thumbnails.default.url);
+            meta.setDescription(channel.snippet.description);
+            meta.addField('Channel ID', channel.id.channelId);
+            await interaction.editReply({
+                embeds: [embed.info(`Search results for "${keyword}":`)],
+                components: [new MessageActionRow().setComponents(menu)]
+            });
+            await imenu.reply({embeds: [meta], ephemeral: true});
         });
         collector.on('end', ()=>{
             menu.setPlaceholder("Expired.");
             menu.setDisabled(true);
-            message.edit({
-                content: `Search results for ${keyword}:`,
+            interaction.editReply({
+                embeds: [embed.info(`Search results for "${keyword}":`)],
                 components: [new MessageActionRow().setComponents(menu)]
             });
         });

@@ -85,6 +85,16 @@ async function liveCheck(){
         map[v.id] = v;
     });
     for (let video of videos){
+        if(!map[video.video_id]){
+            await Notification.destroy({
+                where: {
+                    video_id: video.video_id,
+                }
+            });
+            video.deleted_at = new Date();
+            video.save();
+            continue;
+        }
         let details = map[video.video_id].liveStreamingDetails;
         if(details.actualStartTime){
             await Notification.update({

@@ -23,7 +23,8 @@ export const ListSubscriptionsCommand: SubCommand = {
 
     async handle(interaction: CommandInteraction) {
         await interaction.reply({
-            embeds: [embed.log(`Querying subscriptions for ${interaction.channel}.`)]
+            embeds: [embed.log(`Querying subscriptions for ${interaction.channel}.`)],
+            ephemeral: true,
         });
         let subs = await WebSub.findAll({
             include: [Subscription],
@@ -67,20 +68,24 @@ export const ListSubscriptionsCommand: SubCommand = {
             componentType: MessageComponentTypes.SELECT_MENU, time: 60000
         });
         collector.on('collect', (imenu) => (async ()=>{
-            let embed = new MessageEmbed();
+            let meta = new MessageEmbed();
             let channel = channels[imenu.values[0]];
-            embed.setColor('GREEN');
-            embed.setTitle(channel.title);
-            embed.setURL(`https://youtube.com/channel/${imenu.values[0]}`);
-            embed.setThumbnail(channel.thumbnails.default.url);
-            embed.setDescription(channel.description);
-            embed.addField('Channel ID', imenu.values[0]);
-            await imenu.reply({embeds: [embed]});
+            meta.setColor('GREEN');
+            meta.setTitle(channel.title);
+            meta.setURL(`https://youtube.com/channel/${imenu.values[0]}`);
+            meta.setThumbnail(channel.thumbnails.default.url);
+            meta.setDescription(channel.description);
+            meta.addField('Channel ID', imenu.values[0]);
+            await interaction.editReply({
+                embeds: [embed.info(`Subscriptions for ${interaction.channel}:`)],
+                components: [new MessageActionRow().setComponents(menu)]
+            });
+            await imenu.reply({embeds: [meta]});
         })().catch(logger.error));
         collector.on('end', ()=>{
             menu.setPlaceholder("Expired.");
             menu.setDisabled(true);
-            message.edit({
+            interaction.editReply({
                 embeds: [embed.info(`Subscriptions for ${interaction.channel}:`)],
                 components: [new MessageActionRow().setComponents(menu)]
             }).catch(logger.error);
