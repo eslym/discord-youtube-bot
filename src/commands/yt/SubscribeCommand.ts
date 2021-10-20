@@ -33,7 +33,7 @@ export const SubscribeCommand: SubCommand = {
             websub = new WebSub({
                 youtube_channel: channel_id,
             });
-            let snippet = await websub.fetchSnippet();
+            let snippet = await websub.fetchYoutubeChannelMeta();
             if(snippet === null){
                 await interaction.reply({
                     embeds: [embed.error(`Cannot find youtube channel with ID: \`${channel_id}\`.`)]
@@ -44,7 +44,7 @@ export const SubscribeCommand: SubCommand = {
             websub.subscribe().then();
             title = snippet.snippet.title;
         } else {
-            let snippet = await websub.fetchSnippet();
+            let snippet = await websub.fetchYoutubeChannelMeta();
             title = snippet.snippet.title;
         }
         let sub = await Subscription.count({

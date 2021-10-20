@@ -8,6 +8,8 @@ import {get as config} from "../config";
 import {google, youtube_v3} from "googleapis";
 import {logger} from "../logger";
 import crypto = require("crypto");
+import {redis} from "../redis";
+import Schema$Channel = youtube_v3.Schema$Channel;
 
 @Table({tableName: 'web_subs', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
 export class WebSub extends Model<WebSub> {
@@ -26,7 +28,7 @@ export class WebSub extends Model<WebSub> {
     public id: number;
 
     @Column({type: DataTypes.STRING, allowNull: false, unique: true})
-    public youtube_channel: string;
+    public youtube_channel_id: string;
 
     @Column({type: DataTypes.STRING, allowNull: false})
     public secret: string;
@@ -40,25 +42,36 @@ export class WebSub extends Model<WebSub> {
     @Column({type: DataTypes.DATE, allowNull: true})
     public expires_at: Date;
 
-    @HasMany(() => YoutubeVideo, {foreignKey: 'sub_id'})
+    @HasMany(() => YoutubeVideo, {foreignKey: 'websub_id'})
     public videos: YoutubeVideo[];
 
-    @HasMany(() => Subscription, {foreignKey: 'sub_id'})
+    @HasMany(() => Subscription, {foreignKey: 'websub_id'})
     public subscriptions: Subscription[];
 
     public get topic_url(): string {
         let url = new URL('https://www.youtube.com/xml/feeds/videos.xml');
-        let params = new URLSearchParams([['channel_id', this.youtube_channel]]);
+        let params = new URLSearchParams([['channel_id', this.youtube_channel_id]]);
         url.search = params.toString();
         return url.toString();
     }
 
-    public async fetchSnippet(): Promise<youtube_v3.Schema$Channel>{
+    public async fetchYoutubeChannelMeta(): Promise<Schema$Channel>{
         try{
+            let cache = await redis.get(`ytChannel:${this.youtube_channel_id}`);
+            if(cache){
+                return JSON.parse(cache);
+            }
             let res = await google.youtube('v3').channels.list({
-                id: [this.youtube_channel],
+                id: [this.youtube_channel_id],
                 part: ['snippet'],
             });
+            await redis.set(
+                `ytChannel:${this.youtube_channel_id}`,
+                JSON.stringify(res.data.items[0]),
+                {
+                    EX: 5
+                }
+            );
             return res.data.items[0];
         } catch (_) {
             return null;

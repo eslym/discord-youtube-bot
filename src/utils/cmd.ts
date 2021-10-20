@@ -7,7 +7,7 @@ export const cmd = {
         let channel_id = interaction.options.getString('channel_id');
         let channel: TextChannel = interaction.channel as TextChannel;
         let {websub, subscription} = await Subscription.tryFind(channel_id, channel);
-        let snippet = await websub.fetchSnippet();
+        let snippet = await websub.fetchYoutubeChannelMeta();
         if (snippet === null) {
             await interaction.reply({
                 embeds: [embed.error(`Cannot find youtube channel with ID: \`${channel_id}\`.`)]

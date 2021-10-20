@@ -1,5 +1,5 @@
 import {SlashCommandSubcommandBuilder} from "@discordjs/builders";
-import {CommandInteraction, MessageActionRow, MessageEmbed, MessageSelectMenu} from "discord.js";
+import {CommandInteraction, Message, MessageActionRow, MessageEmbed, MessageSelectMenu} from "discord.js";
 import {google, youtube_v3} from "googleapis";
 import {MessageComponentTypes} from "discord.js/typings/enums";
 import {embed} from "../../utils/embed";
@@ -44,11 +44,13 @@ export const SearchCommand: SubCommand = {
                 };
             })
         );
-        let msg = await interaction.editReply({
+        let message = await interaction.editReply({
             embeds: [embed.info(`Search results for "${keyword}":`)],
-            components: [new MessageActionRow().setComponents(menu)]
+            components: [new MessageActionRow().setComponents(menu)],
         });
-        let message = await interaction.channel.messages.fetch(msg.id);
+        if(!(message instanceof Message)){
+            message = await interaction.channel.messages.fetch(message.id);
+        }
         let collector = message.createMessageComponentCollector({
             componentType: MessageComponentTypes.SELECT_MENU, time: 60000
         });
@@ -65,7 +67,9 @@ export const SearchCommand: SubCommand = {
                 embeds: [embed.info(`Search results for "${keyword}":`)],
                 components: [new MessageActionRow().setComponents(menu)]
             });
-            await imenu.reply({embeds: [meta], ephemeral: true});
+            await imenu.reply({
+                embeds: [meta], ephemeral: true
+            });
         });
         collector.on('end', ()=>{
             menu.setPlaceholder("Expired.");

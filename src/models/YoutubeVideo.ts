@@ -3,6 +3,8 @@ import {DataTypes} from "sequelize";
 import {WebSub} from "./WebSub";
 import {Notification} from "./Notification";
 import {google, youtube_v3} from "googleapis";
+import {redis} from "../redis";
+import Schema$Video = youtube_v3.Schema$Video;
 
 @Table({tableName: 'youtube_videos', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
 export class YoutubeVideo extends Model<YoutubeVideo> {
@@ -12,7 +14,7 @@ export class YoutubeVideo extends Model<YoutubeVideo> {
 
     @ForeignKey(() => WebSub)
     @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false})
-    public sub_id: number;
+    public websub_id: number;
 
     @Column({type: DataTypes.DATE, allowNull: true})
     public live_at: Date;
@@ -26,18 +28,29 @@ export class YoutubeVideo extends Model<YoutubeVideo> {
     @Column({type: DataTypes.DATE, allowNull: true})
     public updated_at: Date;
 
-    @BelongsTo(() => WebSub, {foreignKey: 'sub_id', onDelete: 'cascade', onUpdate: 'restrict'})
+    @BelongsTo(() => WebSub, {foreignKey: 'websub_id', onDelete: 'cascade', onUpdate: 'restrict'})
     public subscription: WebSub;
 
     @HasMany(() => Notification, 'video_id')
     public notifications: Notification[];
 
-    public async fetchSnippet(): Promise<youtube_v3.Schema$Video> {
+    public async fetchYoutubeVideoMeta(): Promise<Schema$Video> {
         try {
+            let cache = await redis.get(`ytVideo:${this.video_id}`);
+            if(cache){
+                return JSON.parse(cache);
+            }
             let res = await google.youtube('v3').videos.list({
                 id: [this.video_id],
                 part: ['snippet', 'liveStreamingDetails']
             });
+            await redis.set(
+                `ytVideo:${this.video_id}`,
+                JSON.stringify(res.data.items[0]),
+                {
+                    EX: 5
+                }
+            );
             return res.data.items[0];
         } catch (_) {
             return null;

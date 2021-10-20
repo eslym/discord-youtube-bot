@@ -1,7 +1,6 @@
 import {SnowflakeUtil, TextBasedChannels, TextChannel} from "discord.js";
-import {BeforeValidate, Column, HasMany, Model, Table} from "sequelize-typescript";
+import {BeforeValidate, Column, Model, Table} from "sequelize-typescript";
 import {DataTypes} from "sequelize";
-import {Notification} from "./Notification";
 import {WebSub} from "./WebSub";
 import {bot} from "../bot";
 import {logger} from "../logger";
@@ -21,17 +20,17 @@ export class Subscription extends Model<Subscription>{
     @Column({type: DataTypes.BIGINT.UNSIGNED, primaryKey: true})
     public id: number;
 
+    @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: true})
+    public discord_guild_id: number;
+
     @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'websub_notification_on_channel'})
     public discord_channel_id: number;
     
     @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'websub_notification_on_channel'})
-    public sub_id: number;
+    public websub_id: number;
 
     @Column({type: DataTypes.STRING, allowNull: true})
     public mention: string;
-
-    @HasMany(()=>Notification, 'subscription_id')
-    public notifications: Notification[];
 
     public async notifyPublish(video_url: string, channel_title: string, live?: Date){
         let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextChannel;

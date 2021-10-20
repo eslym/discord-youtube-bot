@@ -1,6 +1,7 @@
 import {SlashCommandSubcommandBuilder} from "@discordjs/builders";
 import {
     CommandInteraction,
+    Message,
     MessageActionRow,
     MessageEmbed,
     MessageSelectMenu,
@@ -12,9 +13,9 @@ import {embed} from "../../utils/embed";
 import {google, youtube_v3} from "googleapis";
 import {MessageComponentTypes} from "discord.js/typings/enums";
 import {SubCommand} from "../CommandManager";
+import {logger} from "../../logger";
 import Dict = NodeJS.Dict;
 import Schema$ChannelSnippet = youtube_v3.Schema$ChannelSnippet;
-import {logger} from "../../logger";
 
 export const ListSubscriptionsCommand: SubCommand = {
     definition: new SlashCommandSubcommandBuilder()
@@ -40,7 +41,7 @@ export const ListSubscriptionsCommand: SubCommand = {
         }
         let res = await google.youtube('v3').channels.list({
             part: ['id', 'snippet'],
-            id: subs.map(s => s.youtube_channel),
+            id: subs.map(s => s.youtube_channel_id),
             maxResults: subs.length,
         });
         let channels: Dict<Schema$ChannelSnippet> = {};
@@ -59,11 +60,13 @@ export const ListSubscriptionsCommand: SubCommand = {
         menu.setCustomId('youtube_subscriptions');
         menu.setPlaceholder('Select a channel to view details');
         menu.setOptions(options);
-        let msg = await interaction.editReply({
+        let message = await interaction.editReply({
             embeds: [embed.info(`Subscriptions for ${interaction.channel}:`)],
             components: [new MessageActionRow().setComponents(menu)]
         });
-        let message = await interaction.channel.messages.fetch(msg.id);
+        if(!(message instanceof Message)){
+            message = await interaction.channel.messages.fetch(message.id);
+        }
         let collector = message.createMessageComponentCollector({
             componentType: MessageComponentTypes.SELECT_MENU, time: 60000
         });
@@ -80,7 +83,7 @@ export const ListSubscriptionsCommand: SubCommand = {
                 embeds: [embed.info(`Subscriptions for ${interaction.channel}:`)],
                 components: [new MessageActionRow().setComponents(menu)]
             });
-            await imenu.reply({embeds: [meta]});
+            await imenu.reply({embeds: [meta], ephemeral: true, fetchReply:true});
         })().catch(logger.error));
         collector.on('end', ()=>{
             menu.setPlaceholder("Expired.");

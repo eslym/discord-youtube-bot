@@ -19,10 +19,10 @@ import {google, youtube_v3} from "googleapis";
 import {CommandManager} from "./commands/CommandManager";
 import {YoutubeCommand} from "./commands/YoutubeCommand";
 import cron = require('node-cron');
-import Schema$VideoSnippet = youtube_v3.Schema$VideoSnippet;
+import moment = require("moment");
 import Dict = NodeJS.Dict;
 import Schema$Video = youtube_v3.Schema$Video;
-import moment = require("moment");
+import Schema$VideoSnippet = youtube_v3.Schema$VideoSnippet;
 
 let intents = new Intents();
 
@@ -65,124 +65,6 @@ async function setGuildCommandPermissions(guild: Guild, cmds: Collection<Snowfla
     }
 }
 
-async function liveCheck(){
-    let videos = await YoutubeVideo.findAll({
-        include: [Notification],
-        where: {
-            live_at: {[Op.not]: null},
-            deleted_at: null,
-            '$notifications.notified_at$': null,
-        }
-    });
-    if(videos.length === 0) return;
-    let res = await google.youtube('v3').videos.list({
-        part: ['liveStreamingDetails', 'snippet', 'id'],
-        id: videos.map(v=>v.video_id),
-        maxResults: videos.length,
-    });
-    let map: Dict<Schema$Video> = {};
-    res.data.items.forEach(v => {
-        map[v.id] = v;
-    });
-    for (let video of videos){
-        if(!map[video.video_id]){
-            await Notification.destroy({
-                where: {
-                    video_id: video.video_id,
-                }
-            });
-            video.deleted_at = new Date();
-            video.save();
-            continue;
-        }
-        let details = map[video.video_id].liveStreamingDetails;
-        if(details.actualStartTime){
-            await Notification.update({
-                notified_at: new Date(),
-            },{
-                where: {
-                    video_id: video.video_id,
-                    notified_at: null,
-                }
-            });
-            continue;
-        }
-        if(!details.scheduledStartTime){
-            await Notification.destroy({
-                where: {
-                    video_id: video.video_id,
-                    notified_at: null,
-                }
-            });
-            video.live_at = null;
-            video.save();
-            continue;
-        }
-        let live = moment(details.scheduledStartTime);
-        if(!moment(video.live_at).isSame(live)) {
-            video.live_at = live.toDate();
-            video.save();
-            let notifications = await Notification.findAll({
-                where: {
-                    video_id: video.video_id,
-                    notified_at: null,
-                }
-            });
-            let url = new URL('https://www.youtube.com/watch');
-            url.searchParams.set('v', video.video_id);
-            let schedule = live.subtract({minute: 5}).startOf('minute').toDate();
-            for (let notification of notifications) {
-                notification.scheduled_at = schedule;
-                notification.notified_at = null;
-                await notification.save();
-                let sub = await notification.$get('subscription');
-                await sub.notifyReschedule(url.toString(), map[video.video_id].snippet.channelTitle, video.live_at);
-            }
-        }
-    }
-}
-
-async function pushLiveNotifications(){
-    let notifications = await Notification.findAll({
-        where: {
-            notified_at: null,
-            scheduled_at: {
-                [Op.lte]: new Date()
-            }
-        }
-    });
-    if(notifications.length === 0){
-        return;
-    }
-    let videos = await YoutubeVideo.findAll({
-        attributes: ['video_id'],
-        where: {
-            video_id: {
-                [Op.in]: notifications.map(n => n.video_id)
-            }
-        }
-    });
-    if(videos.length === 0) return;
-    let res = await google.youtube('v3').videos.list({
-        part: ['snippet', 'id'],
-        id: videos.map(v=>v.video_id),
-        maxResults: videos.length,
-    });
-    let videoData: Dict<Schema$VideoSnippet> = {};
-    for (let item of res.data.items){
-        videoData[item.id] = item.snippet;
-    }
-    for (let notification of notifications) {
-        let snippet = videoData[notification.video_id];
-        let url = new URL('https://www.youtube.com/watch');
-        url.searchParams.set('v', notification.video_id);
-        let sub = await notification.$get('subscription');
-        await sub.notifyStarting(url.toString(), snippet.channelTitle);
-        notification.notified_at = new Date();
-        notification.save();
-    }
-}
-
 bot.on('ready', () => {
     (async () => {
         let guilds = await bot.guilds.fetch();
@@ -200,13 +82,6 @@ bot.on('ready', () => {
             });
         });
     })().catch(logger.error);
-    cron.schedule('* * * * *', ()=>{
-        liveCheck()
-            .catch(logger.error)
-            .finally(
-                ()=>pushLiveNotifications().catch(logger.error)
-            );
-    });
 });
 
 bot.on('interactionCreate', (interaction) => {

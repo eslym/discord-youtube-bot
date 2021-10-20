@@ -1,5 +1,4 @@
 import {BeforeValidate, BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
-import {Subscription} from "./Subscription";
 import {YoutubeVideo} from "./YoutubeVideo";
 import {DataTypes} from "sequelize";
 import {WebSub} from "./WebSub";
@@ -18,12 +17,8 @@ export class Notification extends Model<Notification>{
     @Column({type: DataTypes.BIGINT.UNSIGNED, primaryKey: true})
     public id: number;
 
-    @ForeignKey(() => Subscription)
-    @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'video_notification_on_subscription'})
-    public subscription_id: number;
-
     @ForeignKey(() => YoutubeVideo)
-    @Column({type: DataTypes.STRING, allowNull: false, unique: 'video_notification_on_subscription'})
+    @Column({type: DataTypes.STRING, allowNull: false})
     public video_id: string;
 
     @Column({type: DataTypes.DATE, allowNull: true})
@@ -40,7 +35,4 @@ export class Notification extends Model<Notification>{
 
     @BelongsTo(()=>YoutubeVideo, {foreignKey: 'video_id', onDelete: 'cascade', onUpdate: 'restrict'})
     public video: YoutubeVideo;
-
-    @BelongsTo(()=>Subscription, {foreignKey: 'subscription_id', onDelete: 'cascade', onUpdate: 'restrict'})
-    public subscription: Subscription;
 }

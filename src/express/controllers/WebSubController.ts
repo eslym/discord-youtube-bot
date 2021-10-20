@@ -13,7 +13,7 @@ export class WebSubController extends BaseController {
     async subscribe() {
         let websub: WebSub = await this.resolveParam<Promise<WebSub>>('websub', (id)=>WebSub.findByPk(id), true);
         this.response.send(this.request.query['hub.challenge']);
-        let data = await websub.fetchSnippet();
+        let data = await websub.fetchYoutubeChannelMeta();
         let title = data.snippet.title;
         if (this.request.query['hub.mode'] === 'subscribe') {
             if (websub.expires_at === null) {
@@ -64,7 +64,7 @@ export class WebSubController extends BaseController {
             logger.warn(`[WebSub] Invalid signature ${sig}`)
             return;
         }
-        let data = await websub.fetchSnippet();
+        let data = await websub.fetchYoutubeChannelMeta();
         let title = data.snippet.title;
         logger.info(`[WebSub] Notification received from ${title}`);
         if(this.request.body.feed['at:deleted-entry'] !== undefined){
@@ -89,7 +89,7 @@ export class WebSubController extends BaseController {
             for (let video of this.request.body.feed.entry) {
                 let id = video['yt:videoId'][0] as string;
                 let url = video.link[0].$.href as string;
-                let channelSnippet = await websub.fetchSnippet();
+                let channelSnippet = await websub.fetchYoutubeChannelMeta();
                 let ytVideo = await YoutubeVideo.findByPk(id);
                 logger.info(`[WebSub] Video: ${id}`);
                 if(!ytVideo){
@@ -97,7 +97,7 @@ export class WebSubController extends BaseController {
                         video_id: id,
                         sub_id: websub.id,
                     });
-                    let videoSnippet = await ytVideo.fetchSnippet();
+                    let videoSnippet = await ytVideo.fetchYoutubeVideoMeta();
                     if(!videoSnippet){
                         continue;
                     }
@@ -129,7 +129,7 @@ export class WebSubController extends BaseController {
                 if(ytVideo.deleted_at){
                     continue;
                 }
-                let videoSnippet = await ytVideo.fetchSnippet();
+                let videoSnippet = await ytVideo.fetchYoutubeVideoMeta();
                 if(!videoSnippet){
                     continue;
                 }
@@ -154,8 +154,6 @@ export class WebSubController extends BaseController {
                         notification.scheduled_at = schedule;
                         notification.notified_at = null;
                         await notification.save();
-                        let sub = await notification.$get('subscription');
-                        await sub.notifyReschedule(url, channelSnippet.snippet.title, ytVideo.live_at);
                     }
                 }
             }
