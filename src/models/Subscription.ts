@@ -1,5 +1,5 @@
 import {SnowflakeUtil, TextBasedChannels, TextChannel} from "discord.js";
-import {BeforeValidate, Column, Model, Table} from "sequelize-typescript";
+import {BeforeValidate, BelongsTo, Column, Model, Table} from "sequelize-typescript";
 import {DataTypes} from "sequelize";
 import {WebSub} from "./WebSub";
 import {bot} from "../bot";
@@ -31,6 +31,21 @@ export class Subscription extends Model<Subscription>{
 
     @Column({type: DataTypes.STRING, allowNull: true})
     public mention: string;
+
+    @Column({type: DataTypes.BOOLEAN, defaultValue: true})
+    public notify_video;
+
+    @Column({type: DataTypes.BOOLEAN, defaultValue: true})
+    public notify_live;
+
+    @Column({type: DataTypes.BOOLEAN, defaultValue: true})
+    public notify_reschedule;
+
+    @Column({type: DataTypes.BOOLEAN, defaultValue: true})
+    public notify_starting;
+
+    @BelongsTo(()=>WebSub, 'websub_id')
+    public websub: WebSub;
 
     public async notifyPublish(video_url: string, channel_title: string, live?: Date){
         let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextChannel;

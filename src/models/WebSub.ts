@@ -55,27 +55,26 @@ export class WebSub extends Model<WebSub> {
         return url.toString();
     }
 
-    public async fetchYoutubeChannelMeta(): Promise<Schema$Channel>{
-        try{
-            let cache = await redis.get(`ytChannel:${this.youtube_channel_id}`);
-            if(cache){
-                return JSON.parse(cache);
-            }
-            let res = await google.youtube('v3').channels.list({
-                id: [this.youtube_channel_id],
-                part: ['snippet'],
-            });
-            await redis.set(
-                `ytChannel:${this.youtube_channel_id}`,
-                JSON.stringify(res.data.items[0]),
-                {
-                    EX: 5
-                }
-            );
-            return res.data.items[0];
-        } catch (_) {
+    public async fetchYoutubeChannelMeta(): Promise<Schema$Channel> {
+        let cache = await redis.get(`ytChannel:${this.youtube_channel_id}`);
+        if (cache) {
+            return JSON.parse(cache);
+        }
+        let res = await google.youtube('v3').channels.list({
+            id: [this.youtube_channel_id],
+            part: ['snippet'],
+        });
+        if(res.data.pageInfo.totalResults === 0){
             return null;
         }
+        await redis.set(
+            `ytChannel:${this.youtube_channel_id}`,
+            JSON.stringify(res.data.items[0]),
+            {
+                EX: 5
+            }
+        );
+        return res.data.items[0];
     }
 
     public async subscribe(mode: 'subscribe' | 'unsubscribe' = 'subscribe') {

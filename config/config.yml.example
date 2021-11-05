@@ -1,5 +1,4 @@
 discord:
-  appId: ""
   token: ""
   inviteLink: true
 youtube:

@@ -35,25 +35,24 @@ export class YoutubeVideo extends Model<YoutubeVideo> {
     public notifications: Notification[];
 
     public async fetchYoutubeVideoMeta(): Promise<Schema$Video> {
-        try {
-            let cache = await redis.get(`ytVideo:${this.video_id}`);
-            if(cache){
-                return JSON.parse(cache);
-            }
-            let res = await google.youtube('v3').videos.list({
-                id: [this.video_id],
-                part: ['snippet', 'liveStreamingDetails']
-            });
-            await redis.set(
-                `ytVideo:${this.video_id}`,
-                JSON.stringify(res.data.items[0]),
-                {
-                    EX: 5
-                }
-            );
-            return res.data.items[0];
-        } catch (_) {
+        let cache = await redis.get(`ytVideo:${this.video_id}`);
+        if (cache) {
+            return JSON.parse(cache);
+        }
+        let res = await google.youtube('v3').videos.list({
+            id: [this.video_id],
+            part: ['snippet', 'liveStreamingDetails']
+        });
+        if (res.data.pageInfo.totalResults === 0) {
             return null;
         }
+        await redis.set(
+            `ytVideo:${this.video_id}`,
+            JSON.stringify(res.data.items[0]),
+            {
+                EX: 5
+            }
+        );
+        return res.data.items[0];
     }
 }

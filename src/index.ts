@@ -7,7 +7,7 @@ import {WebSub} from "./models/WebSub";
 import {YoutubeVideo} from "./models/YoutubeVideo";
 import {server} from "./express/server";
 import {google} from "googleapis";
-import {bot, setupCommands} from "./bot";
+import {bot} from "./bot";
 import {Op} from "sequelize";
 import cron = require('node-cron');
 import moment = require("moment");
@@ -28,6 +28,7 @@ sql.addModels([
         logger.info('Use the following link to add this bot into server.');
         logger.info(url.toString());
     }
+
     if (config.get('database.sync')) {
         await sql.sync({alter:true});
         logger.info("DB synced.");
@@ -54,10 +55,8 @@ sql.addModels([
             }
         }).catch(error => logger.error(error));
     });
-    await setupCommands();
-    logger.info('Command refreshed.')
+
     await bot.login(config.get('discord.token'));
-    logger.info('Discord bot ready.');
 })().catch(e => {
     logger.error(e);
     process.exit(1);
