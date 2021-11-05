@@ -38,4 +38,8 @@ export function get(path: string = '$', def: any = undefined): any{
     return res === undefined ? def : res;
 }
 
+export function format(template: string, data: object){
+    return template.replace(/\${([a-z]+)}/gi, (_, v)=>data[v] ?? '');
+}
+
 reload();

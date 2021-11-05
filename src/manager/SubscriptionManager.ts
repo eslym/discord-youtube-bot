@@ -5,6 +5,9 @@ import {WebSub} from "../models/WebSub";
 import {col, fn, where} from "sequelize";
 import cron = require("node-cron");
 import {catchLog} from "../utils/catchLog";
+import {YoutubeVideo} from "../models/YoutubeVideo";
+import {format, get as config} from "../config";
+import moment = require("moment");
 
 interface ChannelSubscribeOptions {
     notify_video?: boolean;
@@ -149,4 +152,34 @@ class ChannelSubscriptionManager {
             }
         });
     }
+
+    async notify(type: NotificationType, subscription: Subscription, video: YoutubeVideo): Promise<boolean> {
+        if(!subscription["notify_"+type]){
+            return false;
+        }
+        let meta = await video.fetchYoutubeVideoMeta();
+        let data = {
+            channel: meta.snippet.channelTitle,
+            title: meta.snippet.title,
+            url: video.url,
+        }
+        if(subscription.mention){
+            data['mentions'] = format(config('$.notifications.mentions'), {mentions: subscription.mention});
+        }
+        if(video.live_at){
+            data['schedule'] = moment(video.live_at)
+                .locale(config('$.notification.locale'))
+                .format(config('$.notification.timeFormat'));
+        }
+        let notification = format(config(`$.notification.${type}`), data);
+        await this._channel.send(notification);
+        return true;
+    }
+}
+
+export enum NotificationType {
+    VIDEO = 'video',
+    LIVE = 'live',
+    RESCHEDULE = 'reschedule',
+    STARTING = 'starting',
 }

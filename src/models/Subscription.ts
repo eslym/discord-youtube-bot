@@ -2,10 +2,8 @@ import {SnowflakeUtil, TextBasedChannels, TextChannel} from "discord.js";
 import {BeforeValidate, BelongsTo, Column, Model, Table} from "sequelize-typescript";
 import {DataTypes} from "sequelize";
 import {WebSub} from "./WebSub";
-import {bot} from "../bot";
-import {logger} from "../logger";
-import {channel as ch} from "../utils/channel";
-import moment = require("moment");
+import {NotificationType, SubscriptionManager} from "../manager/SubscriptionManager";
+import {YoutubeVideo} from "./YoutubeVideo";
 
 @Table({tableName: 'subscriptions', createdAt: 'created_at', updatedAt: 'updated_at'})
 export class Subscription extends Model<Subscription>{
@@ -47,39 +45,9 @@ export class Subscription extends Model<Subscription>{
     @BelongsTo(()=>WebSub, 'websub_id')
     public websub: WebSub;
 
-    public async notifyPublish(video_url: string, channel_title: string, live?: Date){
-        let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextChannel;
-        let notification = `${channel_title} has publish a new video.\n${video_url}`;
-        if(live){
-            let schedule = moment(live).format("D MMM YYYY, HH:mm");
-            notification = `${channel_title} scheduled a live streaming at ${schedule}\n${video_url}`;
-        }
-        if(this.mention) {
-            notification = `${this.mention}\n${notification}`;
-        }
-        await channel.send(notification);
-        logger.info(`Video notification from ${channel_title} to ${ch.name(channel)}.`);
-    }
-
-    public async notifyReschedule(video_url: string, channel_title: string, live: Date){
-        let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextBasedChannels;
-        let schedule = moment(live).format("D MMM YYYY, HH:mm");
-        let notification = `${channel_title} re-scheduled a live streaming to ${schedule}\n${video_url}`;
-        if(this.mention) {
-            notification = `${this.mention}\n${notification}`;
-        }
-        await channel.send(notification);
-        logger.info(`Re-schedule notification from ${channel_title} to ${ch.name(channel)}.`);
-    }
-
-    public async notifyStarting(video_url: string, channel_title: string){
-        let channel = await bot.channels.fetch(this.discord_channel_id.toString()) as TextBasedChannels;
-        let notification = `A live streaming from ${channel_title} is starting soon.\n${video_url}`;
-        if(this.mention) {
-            notification = `${this.mention}\n${notification}`;
-        }
-        await channel.send(notification);
-        logger.info(`Live starting notification from ${channel_title} to ${ch.name(channel)}.`);
+    public notify(type: NotificationType, video: YoutubeVideo): Promise<boolean> {
+        return SubscriptionManager.get(this.discord_channel_id.toString())
+            .then(m=>m.notify(type, this, video));
     }
 
     public static async tryFind(channel_id: string, channel: TextBasedChannels){

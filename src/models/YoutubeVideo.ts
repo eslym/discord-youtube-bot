@@ -5,6 +5,7 @@ import {Notification} from "./Notification";
 import {google, youtube_v3} from "googleapis";
 import {redis} from "../redis";
 import Schema$Video = youtube_v3.Schema$Video;
+import {NotificationType} from "../manager/SubscriptionManager";
 
 @Table({tableName: 'youtube_videos', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
 export class YoutubeVideo extends Model<YoutubeVideo> {
@@ -33,6 +34,10 @@ export class YoutubeVideo extends Model<YoutubeVideo> {
 
     @HasMany(() => Notification, 'video_id')
     public notifications: Notification[];
+
+    public get url(): string{
+        return `https://www.youtube.com/watch?v=${this.video_id}`;
+    }
 
     public async fetchYoutubeVideoMeta(): Promise<Schema$Video> {
         let cache = await redis.get(`ytVideo:${this.video_id}`);

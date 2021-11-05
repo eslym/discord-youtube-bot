@@ -16,3 +16,23 @@ database:
   password: ''
   logging: false
   sync: true
+notification:
+  locale: 'en'
+  timeFormat: 'llll'
+  mentions: Hi ${mentions},
+  video: |-
+    ${mentions}
+    ${channel} has published a new video.
+    ${url}
+  live: |-
+    ${mentions}
+    ${channel} has scheduled a new live-streaming at ${schedule}.
+    ${url}
+  reschedule: |-
+    ${mentions}
+    ${channel} re-scheduled a new live-streaming at ${schedule}.
+    ${url}
+  starting: |-
+    ${mentions}
+    ${channel} is gonna to start a live streaming soon.
+    ${url}

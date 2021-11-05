@@ -7,6 +7,7 @@ import {Subscription} from "../../models/Subscription";
 import {Notification} from "../../models/Notification";
 import {Op} from "sequelize";
 import {YoutubeVideo} from "../../models/YoutubeVideo";
+import {NotificationType} from "../../manager/SubscriptionManager";
 import crypto = require("crypto");
 
 export class WebSubController extends BaseController {
@@ -111,7 +112,7 @@ export class WebSubController extends BaseController {
                             ytVideo.save();
                             schedule = schedule.subtract({minute: 5}).startOf('minute');
                             for(let sub of await websub.$get('subscriptions')){
-                                await sub.notifyPublish(url, channelSnippet.snippet.title, ytVideo.live_at);
+                                await sub.notify(NotificationType.LIVE, ytVideo);
                                 await Notification.create({
                                     subscription_id: sub.id,
                                     video_id: id,
@@ -122,7 +123,7 @@ export class WebSubController extends BaseController {
                         }
                     }
                     for(let sub of await websub.$get('subscriptions')){
-                        await sub.notifyPublish(url, channelSnippet.snippet.title);
+                        await sub.notify(NotificationType.VIDEO, ytVideo);
                     }
                     continue;
                 }
@@ -154,6 +155,10 @@ export class WebSubController extends BaseController {
                         notification.scheduled_at = schedule;
                         notification.notified_at = null;
                         await notification.save();
+                    }
+                    let subs = await websub.$get('subscriptions');
+                    for(let sub of subs){
+                        await sub.notify(NotificationType.RESCHEDULE, ytVideo);
                     }
                 }
             }
