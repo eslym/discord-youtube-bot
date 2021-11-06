@@ -2,7 +2,7 @@ import {NextFunction, Request, Response} from "express";
 import {parseStringPromise as parsexml} from "xml2js";
 
 export async function xml(req: Request, res: Response, next: NextFunction) {
-    if(req.is('xml')){
+    if (req.is('xml')) {
         try {
             req.body = await parsexml(req.raw.toString());
         } catch (_) {
@@ -19,7 +19,7 @@ export async function xml(req: Request, res: Response, next: NextFunction) {
 }
 
 export function json(req: Request, res: Response, next: NextFunction) {
-    if(req.is('json')){
+    if (req.is('json')) {
         try {
             req.body = JSON.parse(req.raw.toString());
             next();
@@ -36,9 +36,9 @@ export function json(req: Request, res: Response, next: NextFunction) {
     next();
 }
 
-export function need(...types: string[]){
+export function need(...types: string[]) {
     return (req: Request, res: Response, next: NextFunction) => {
-        if(req.is(types)){
+        if (req.is(types)) {
             next();
         } else {
             res.status(422)

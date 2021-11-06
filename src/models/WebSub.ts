@@ -7,8 +7,8 @@ import axios from "axios";
 import {get as config} from "../config";
 import {google, youtube_v3} from "googleapis";
 import {logger} from "../logger";
-import crypto = require("crypto");
 import {redis} from "../redis";
+import crypto = require("crypto");
 import Schema$Channel = youtube_v3.Schema$Channel;
 
 @Table({tableName: 'web_subs', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
@@ -64,7 +64,7 @@ export class WebSub extends Model<WebSub> {
             id: [this.youtube_channel_id],
             part: ['snippet'],
         });
-        if(res.data.pageInfo.totalResults === 0){
+        if (res.data.pageInfo.totalResults === 0) {
             return null;
         }
         await redis.set(

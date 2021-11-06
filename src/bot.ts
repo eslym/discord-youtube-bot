@@ -1,18 +1,5 @@
-import {
-    ApplicationCommand,
-    ApplicationCommandPermissionData,
-    Client,
-    Collection,
-    Guild,
-    GuildResolvable,
-    Intents,
-    Snowflake
-} from "discord.js";
-import {REST} from "@discordjs/rest";
-import {Routes} from "discord-api-types/v9";
-import {get as config} from "./config";
+import {Client, Intents} from "discord.js";
 import {logger} from "./logger";
-import {catchLog} from "./utils/catchLog";
 import {SubscriptionManager} from "./manager/SubscriptionManager";
 
 let intents = new Intents();

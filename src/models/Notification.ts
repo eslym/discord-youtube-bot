@@ -5,7 +5,7 @@ import {WebSub} from "./WebSub";
 import {SnowflakeUtil} from "discord.js";
 
 @Table({tableName: 'notifications', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
-export class Notification extends Model<Notification>{
+export class Notification extends Model<Notification> {
 
     @BeforeValidate
     protected static makeId(self: WebSub) {
@@ -13,7 +13,7 @@ export class Notification extends Model<Notification>{
             self.id = SnowflakeUtil.generate() as any;
         }
     }
-    
+
     @Column({type: DataTypes.BIGINT.UNSIGNED, primaryKey: true})
     public id: number;
 
@@ -33,6 +33,6 @@ export class Notification extends Model<Notification>{
     @Column({type: DataTypes.DATE, allowNull: true})
     public updated_at: Date;
 
-    @BelongsTo(()=>YoutubeVideo, {foreignKey: 'video_id', onDelete: 'cascade', onUpdate: 'restrict'})
+    @BelongsTo(() => YoutubeVideo, {foreignKey: 'video_id', onDelete: 'cascade', onUpdate: 'restrict'})
     public video: YoutubeVideo;
 }

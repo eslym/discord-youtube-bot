@@ -3,7 +3,7 @@ import {Subscription} from "../models/Subscription";
 import {embed} from "./embed";
 
 export const cmd = {
-    async verifySubscription(interaction: CommandInteraction){
+    async verifySubscription(interaction: CommandInteraction) {
         let channel_id = interaction.options.getString('channel_id');
         let channel: TextChannel = interaction.channel as TextChannel;
         let {websub, subscription} = await Subscription.tryFind(channel_id, channel);

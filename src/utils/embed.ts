@@ -1,6 +1,6 @@
 import {MessageEmbed} from "discord.js";
 
-type EmbedGenerator = (text: string)=>MessageEmbed;
+type EmbedGenerator = (text: string) => MessageEmbed;
 
 type EmbedUtils = {
     [key in 'info' | 'log' | 'warn' | 'error']: EmbedGenerator;
@@ -16,7 +16,7 @@ const colors = {
 export const embed: EmbedUtils = {} as any;
 
 for (let key in colors) {
-    embed[key] = function (text: string){
+    embed[key] = function (text: string) {
         return new MessageEmbed({description: text})
             .setColor(colors[key]);
     }

@@ -20,7 +20,7 @@ sql.addModels([
 ]);
 
 (async () => {
-    if (config.get('discord.inviteLink')){
+    if (config.get('discord.inviteLink')) {
         let url = new URL('https://discord.com/oauth2/authorize');
         url.searchParams.set('client_id', config.get('discord.appId'));
         url.searchParams.set('scope', 'bot applications.commands');
@@ -30,18 +30,18 @@ sql.addModels([
     }
 
     if (config.get('database.sync')) {
-        await sql.sync({alter:true});
+        await sql.sync({alter: true});
         logger.info("DB synced.");
     }
 
     google.options({auth: config.get('youtube.key')});
 
-    server.listen(config.get('websub.port', config.get('websub.host')), ()=>{
+    server.listen(config.get('websub.port', config.get('websub.host')), () => {
         logger.info('Websub listener ready.');
     });
 
     // Setup cron for renew websub
-    cron.schedule('*/5 * * * *', ()=>{
+    cron.schedule('*/5 * * * *', () => {
         WebSub.findAll({
             where: {
                 [Op.or]: [

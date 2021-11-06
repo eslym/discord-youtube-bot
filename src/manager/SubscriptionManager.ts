@@ -3,10 +3,10 @@ import {bot} from "../bot";
 import {Subscription} from "../models/Subscription";
 import {WebSub} from "../models/WebSub";
 import {col, fn, where} from "sequelize";
-import cron = require("node-cron");
 import {catchLog} from "../utils/catchLog";
 import {YoutubeVideo} from "../models/YoutubeVideo";
 import {format, get as config} from "../config";
+import cron = require("node-cron");
 import moment = require("moment");
 
 interface ChannelSubscribeOptions {
@@ -36,8 +36,8 @@ export module SubscriptionManager {
         return new ChannelSubscriptionManager(ch as TextBasedChannels);
     }
 
-    export function boot(){
-        if(booted) return;
+    export function boot() {
+        if (booted) return;
         booted = true;
         cron.schedule('* * * * *', catchLog(SubscriptionManager.checkNotification));
         cron.schedule('*/5 * * * *', catchLog(SubscriptionManager.checkVideoUpdates));
@@ -154,7 +154,7 @@ class ChannelSubscriptionManager {
     }
 
     async notify(type: NotificationType, subscription: Subscription, video: YoutubeVideo): Promise<boolean> {
-        if(!subscription["notify_"+type]){
+        if (!subscription["notify_" + type]) {
             return false;
         }
         let meta = await video.fetchYoutubeVideoMeta();
@@ -163,10 +163,10 @@ class ChannelSubscriptionManager {
             title: meta.snippet.title,
             url: video.url,
         }
-        if(subscription.mention){
+        if (subscription.mention) {
             data['mentions'] = format(config('$.notifications.mentions'), {mentions: subscription.mention});
         }
-        if(video.live_at){
+        if (video.live_at) {
             data['schedule'] = moment(video.live_at)
                 .locale(config('$.notification.locale'))
                 .format(config('$.notification.timeFormat'));

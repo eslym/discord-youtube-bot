@@ -4,8 +4,8 @@ import {WebSub} from "./WebSub";
 import {Notification} from "./Notification";
 import {google, youtube_v3} from "googleapis";
 import {redis} from "../redis";
-import Schema$Video = youtube_v3.Schema$Video;
 import {NotificationType} from "../manager/SubscriptionManager";
+import Schema$Video = youtube_v3.Schema$Video;
 
 @Table({tableName: 'youtube_videos', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
 export class YoutubeVideo extends Model<YoutubeVideo> {
@@ -16,6 +16,9 @@ export class YoutubeVideo extends Model<YoutubeVideo> {
     @ForeignKey(() => WebSub)
     @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false})
     public websub_id: number;
+
+    @Column({type: DataTypes.STRING, allowNull: false})
+    public type: NotificationType;
 
     @Column({type: DataTypes.DATE, allowNull: true})
     public live_at: Date;
@@ -35,7 +38,7 @@ export class YoutubeVideo extends Model<YoutubeVideo> {
     @HasMany(() => Notification, 'video_id')
     public notifications: Notification[];
 
-    public get url(): string{
+    public get url(): string {
         return `https://www.youtube.com/watch?v=${this.video_id}`;
     }
 
