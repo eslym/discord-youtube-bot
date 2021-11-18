@@ -4,7 +4,6 @@ import {WebSub} from "./WebSub";
 import {Notification} from "./Notification";
 import {google, youtube_v3} from "googleapis";
 import {redis} from "../redis";
-import {NotificationType} from "../manager/SubscriptionManager";
 import Schema$Video = youtube_v3.Schema$Video;
 
 @Table({tableName: 'youtube_videos', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})

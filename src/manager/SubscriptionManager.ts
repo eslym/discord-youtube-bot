@@ -6,10 +6,11 @@ import {col, fn, Op, where} from "sequelize";
 import {catchLog} from "../utils/catchLog";
 import {YoutubeVideo} from "../models/YoutubeVideo";
 import {format, get as config} from "../config";
-import cron = require("node-cron");
-import moment = require("moment");
 import {Notification} from "../models/Notification";
 import {logger} from "../logger";
+import {google} from "googleapis";
+import cron = require("node-cron");
+import moment = require("moment");
 
 interface ChannelSubscribeOptions {
     notify_video?: boolean;
@@ -21,6 +22,8 @@ interface ChannelSubscribeOptions {
 let booted = false;
 
 export module SubscriptionManager {
+    import Dict = NodeJS.Dict;
+
     export async function get(channel: ChannelResolvable): Promise<ChannelSubscriptionManager> {
         let ch = channel as Channel;
         if (typeof channel === 'string') {
@@ -71,7 +74,59 @@ export module SubscriptionManager {
     }
 
     export async function checkVideoUpdates() {
-
+        let videos = await YoutubeVideo.findAll({
+            include: [Notification],
+            where: {
+                live_at: {[Op.gt]: new Date()},
+                '$notifications.notified_at$': null,
+            }
+        });
+        if(videos.length === 0){
+            return;
+        }
+        let ids = videos.map(v => v.video_id);
+        let dict: Dict<YoutubeVideo> = Object
+            .fromEntries(videos.map(v=>[v.video_id, v]));
+        let res = await google.youtube('v3').videos.list({
+            id: ids, part: ['id', 'liveStreamingDetails']
+        });
+        for(let schema of res.data.items){
+            if (
+                !schema.liveStreamingDetails ||
+                !schema.liveStreamingDetails.scheduledStartTime ||
+                schema.liveStreamingDetails.actualStartTime
+            ) {
+                continue;
+            }
+            let newLive = moment(schema.liveStreamingDetails.scheduledStartTime);
+            let video = dict[schema.id];
+            if (!newLive.isSame(video.live_at)) {
+                video.live_at = newLive.toDate();
+                video.save();
+                let notifications = await Notification.findAll({
+                    where: {
+                        video_id: schema.id,
+                        type: NotificationType.STARTING,
+                    }
+                });
+                let schedule = newLive.subtract({minute: 5}).startOf('minute').toDate();
+                for (let notification of notifications) {
+                    notification.scheduled_at = schedule;
+                    notification.notified_at = null;
+                    await notification.save();
+                }
+                let websub = await video.$get('subscription');
+                let subs = await websub.$get('subscriptions');
+                for (let sub of subs) {
+                    await sub.notify(NotificationType.RESCHEDULE, video);
+                }
+                await Notification.create({
+                    type: NotificationType.RESCHEDULE,
+                    video_id: schema.id,
+                    scheduled_at: new Date()
+                });
+            }
+        }
     }
 }
 

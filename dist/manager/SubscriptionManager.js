@@ -8,10 +8,11 @@ const sequelize_1 = require("sequelize");
 const catchLog_1 = require("../utils/catchLog");
 const YoutubeVideo_1 = require("../models/YoutubeVideo");
 const config_1 = require("../config");
-const cron = require("node-cron");
-const moment = require("moment");
 const Notification_1 = require("../models/Notification");
 const logger_1 = require("../logger");
+const googleapis_1 = require("googleapis");
+const cron = require("node-cron");
+const moment = require("moment");
 let booted = false;
 var SubscriptionManager;
 (function (SubscriptionManager) {
@@ -67,6 +68,57 @@ var SubscriptionManager;
     }
     SubscriptionManager.checkNotification = checkNotification;
     async function checkVideoUpdates() {
+        let videos = await YoutubeVideo_1.YoutubeVideo.findAll({
+            include: [Notification_1.Notification],
+            where: {
+                live_at: { [sequelize_1.Op.gt]: new Date() },
+                '$notifications.notified_at$': null,
+            }
+        });
+        if (videos.length === 0) {
+            return;
+        }
+        let ids = videos.map(v => v.video_id);
+        let dict = Object
+            .fromEntries(videos.map(v => [v.video_id, v]));
+        let res = await googleapis_1.google.youtube('v3').videos.list({
+            id: ids, part: ['id', 'liveStreamingDetails']
+        });
+        for (let schema of res.data.items) {
+            if (!schema.liveStreamingDetails ||
+                !schema.liveStreamingDetails.scheduledStartTime ||
+                schema.liveStreamingDetails.actualStartTime) {
+                continue;
+            }
+            let newLive = moment(schema.liveStreamingDetails.scheduledStartTime);
+            let video = dict[schema.id];
+            if (!newLive.isSame(video.live_at)) {
+                video.live_at = newLive.toDate();
+                video.save();
+                let notifications = await Notification_1.Notification.findAll({
+                    where: {
+                        video_id: schema.id,
+                        type: NotificationType.STARTING,
+                    }
+                });
+                let schedule = newLive.subtract({ minute: 5 }).startOf('minute').toDate();
+                for (let notification of notifications) {
+                    notification.scheduled_at = schedule;
+                    notification.notified_at = null;
+                    await notification.save();
+                }
+                let websub = await video.$get('subscription');
+                let subs = await websub.$get('subscriptions');
+                for (let sub of subs) {
+                    await sub.notify(NotificationType.RESCHEDULE, video);
+                }
+                await Notification_1.Notification.create({
+                    type: NotificationType.RESCHEDULE,
+                    video_id: schema.id,
+                    scheduled_at: new Date()
+                });
+            }
+        }
     }
     SubscriptionManager.checkVideoUpdates = checkVideoUpdates;
 })(SubscriptionManager = exports.SubscriptionManager || (exports.SubscriptionManager = {}));
