@@ -3,6 +3,7 @@ import {YoutubeVideo} from "./YoutubeVideo";
 import {DataTypes} from "sequelize";
 import {WebSub} from "./WebSub";
 import {SnowflakeUtil} from "discord.js";
+import {NotificationType} from "../manager/SubscriptionManager";
 
 @Table({tableName: 'notifications', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
 export class Notification extends Model<Notification> {
@@ -16,6 +17,9 @@ export class Notification extends Model<Notification> {
 
     @Column({type: DataTypes.BIGINT.UNSIGNED, primaryKey: true})
     public id: number;
+
+    @Column({type: DataTypes.STRING, allowNull: false})
+    public type: NotificationType;
 
     @ForeignKey(() => YoutubeVideo)
     @Column({type: DataTypes.STRING, allowNull: false})

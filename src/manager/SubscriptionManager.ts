@@ -2,12 +2,14 @@ import {Channel, ChannelResolvable, TextBasedChannels} from "discord.js";
 import {bot} from "../bot";
 import {Subscription} from "../models/Subscription";
 import {WebSub} from "../models/WebSub";
-import {col, fn, where} from "sequelize";
+import {col, fn, Op, where} from "sequelize";
 import {catchLog} from "../utils/catchLog";
 import {YoutubeVideo} from "../models/YoutubeVideo";
 import {format, get as config} from "../config";
 import cron = require("node-cron");
 import moment = require("moment");
+import {Notification} from "../models/Notification";
+import {logger} from "../logger";
 
 interface ChannelSubscribeOptions {
     notify_video?: boolean;
@@ -44,7 +46,28 @@ export module SubscriptionManager {
     }
 
     export async function checkNotification() {
-
+        let notifications = await Notification.findAll({
+            include: [YoutubeVideo],
+            where: {
+                type: NotificationType.STARTING,
+                scheduled_at: {[Op.lte]: new Date()},
+                notified_at: null,
+            }
+        });
+        for(let notification of notifications){
+            try{
+                let video = notification.video;
+                let websub = await video.$get('subscription');
+                let subscriptions = await websub.get('subscriptions');
+                for(let sub of subscriptions){
+                    await sub.notify(notification.type, video);
+                }
+                notification.notified_at = new Date();
+                notification.save();
+            } catch (error){
+                logger.warn(error);
+            }
+        }
     }
 
     export async function checkVideoUpdates() {
