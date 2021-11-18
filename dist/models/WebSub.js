@@ -8,15 +8,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebSub = void 0;
 const sequelize_typescript_1 = require("sequelize-typescript");
@@ -28,6 +19,7 @@ const axios_1 = require("axios");
 const config_1 = require("../config");
 const googleapis_1 = require("googleapis");
 const logger_1 = require("../logger");
+const redis_1 = require("../redis");
 const crypto = require("crypto");
 let WebSub = class WebSub extends sequelize_typescript_1.Model {
     static makeId(self) {
@@ -40,35 +32,36 @@ let WebSub = class WebSub extends sequelize_typescript_1.Model {
     }
     get topic_url() {
         let url = new URL('https://www.youtube.com/xml/feeds/videos.xml');
-        let params = new URLSearchParams([['channel_id', this.youtube_channel]]);
+        let params = new URLSearchParams([['channel_id', this.youtube_channel_id]]);
         url.search = params.toString();
         return url.toString();
     }
-    fetchSnippet() {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                let res = yield googleapis_1.google.youtube('v3').channels.list({
-                    id: [this.youtube_channel],
-                    part: ['snippet'],
-                });
-                return res.data.items[0];
-            }
-            catch (_) {
-                return null;
-            }
+    async fetchYoutubeChannelMeta() {
+        let cache = await redis_1.redis.get(`ytChannel:${this.youtube_channel_id}`);
+        if (cache) {
+            return JSON.parse(cache);
+        }
+        let res = await googleapis_1.google.youtube('v3').channels.list({
+            id: [this.youtube_channel_id],
+            part: ['snippet'],
         });
+        if (res.data.pageInfo.totalResults === 0) {
+            return null;
+        }
+        await redis_1.redis.set(`ytChannel:${this.youtube_channel_id}`, JSON.stringify(res.data.items[0]), {
+            EX: 5
+        });
+        return res.data.items[0];
     }
-    subscribe(mode = 'subscribe') {
-        return __awaiter(this, void 0, void 0, function* () {
-            let data = new URLSearchParams();
-            data.append('hub.callback', `${(0, config_1.get)('websub.url')}/websub/${this.id}`);
-            data.append('hub.mode', mode);
-            data.append('hub.topic', this.topic_url);
-            data.append('hub.secret', this.secret);
-            yield axios_1.default.post('https://pubsubhubbub.appspot.com/subscribe', data)
-                .catch((_) => {
-                logger_1.logger.warn(`[WebSub] Failed to ${mode} ` + this.topic_url);
-            });
+    async subscribe(mode = 'subscribe') {
+        let data = new URLSearchParams();
+        data.append('hub.callback', `${(0, config_1.get)('websub.url')}/websub/${this.id}`);
+        data.append('hub.mode', mode);
+        data.append('hub.topic', this.topic_url);
+        data.append('hub.secret', this.secret);
+        await axios_1.default.post('https://pubsubhubbub.appspot.com/subscribe', data)
+            .catch((_) => {
+            logger_1.logger.warn(`[WebSub] Failed to ${mode} ` + this.topic_url);
         });
     }
 };
@@ -79,7 +72,7 @@ __decorate([
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false, unique: true }),
     __metadata("design:type", String)
-], WebSub.prototype, "youtube_channel", void 0);
+], WebSub.prototype, "youtube_channel_id", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false }),
     __metadata("design:type", String)
@@ -97,11 +90,11 @@ __decorate([
     __metadata("design:type", Date)
 ], WebSub.prototype, "expires_at", void 0);
 __decorate([
-    (0, sequelize_typescript_1.HasMany)(() => YoutubeVideo_1.YoutubeVideo, { foreignKey: 'sub_id' }),
+    (0, sequelize_typescript_1.HasMany)(() => YoutubeVideo_1.YoutubeVideo, { foreignKey: 'websub_id' }),
     __metadata("design:type", Array)
 ], WebSub.prototype, "videos", void 0);
 __decorate([
-    (0, sequelize_typescript_1.HasMany)(() => Subscription_1.Subscription, { foreignKey: 'sub_id' }),
+    (0, sequelize_typescript_1.HasMany)(() => Subscription_1.Subscription, { foreignKey: 'websub_id' }),
     __metadata("design:type", Array)
 ], WebSub.prototype, "subscriptions", void 0);
 __decorate([

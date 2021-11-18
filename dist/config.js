@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.get = exports.reload = void 0;
+exports.format = exports.get = exports.reload = void 0;
 const YAML = require("yaml");
 const paths_1 = require("./paths");
 const fs = require("fs");
@@ -38,6 +38,10 @@ function get(path = '$', def = undefined) {
     return res === undefined ? def : res;
 }
 exports.get = get;
+function format(template, data) {
+    return template.replace(/\${([a-z]+)}/gi, (_, v) => data[v] ?? '');
+}
+exports.format = format;
 reload();
 
 //# sourceMappingURL=config.js.map

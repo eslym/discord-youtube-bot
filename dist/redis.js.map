@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/redis.ts"],"names":[],"mappings":";;;AAAA,iCAAmC;AACnC,qCAAuC;AAE1B,QAAA,KAAK,GAAG,IAAA,oBAAY,EAAC,IAAA,YAAM,EAAC,OAAO,CAAC,CAAC,CAAC","file":"redis.js","sourcesContent":["import {createClient} from 'redis';\nimport {get as config} from \"./config\";\n\nexport const redis = createClient(config('redis'));\n"]}

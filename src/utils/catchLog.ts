@@ -1,6 +1,8 @@
 import {logger} from "../logger";
 
-export function catchLog(promiseProvider: () => Promise<unknown>) {
-    return () => promiseProvider()
-        .catch(logger.error);
+type PromiseProvider = (...args: unknown[]) => Promise<unknown>;
+
+export function catchLog<T extends PromiseProvider>(promiseProvider: T): T {
+    return ((...args: unknown[]) => promiseProvider(...args)
+        .catch(logger.error)) as any;
 }
