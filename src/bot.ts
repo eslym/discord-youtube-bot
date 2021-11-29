@@ -1,7 +1,7 @@
-import {Client, Intents, Interaction} from "discord.js";
+import {Client, Intents} from "discord.js";
 import {logger} from "./logger";
 import {SubscriptionManager} from "./manager/SubscriptionManager";
-import {catchLog} from "./utils/catchLog";
+import {CommandManager} from "./manager/CommandManager";
 
 let intents = new Intents();
 
@@ -18,10 +18,5 @@ export const bot = new Client({intents});
 bot.on('ready', () => {
     logger.info('Discord bot ready.');
     SubscriptionManager.boot();
+    CommandManager.boot();
 });
-
-bot.on('interactionCreate', catchLog(async (interaction: Interaction) => {
-    if (interaction.isCommand()) {
-
-    }
-}));

@@ -11,12 +11,15 @@ import {bot} from "./bot";
 import {Op} from "sequelize";
 import cron = require('node-cron');
 import moment = require("moment");
+import {CommandMap} from "./models/CommandMap";
+import {redis} from "./redis";
 
 sql.addModels([
     Notification,
     Subscription,
     WebSub,
     YoutubeVideo,
+    CommandMap,
 ]);
 
 (async () => {
@@ -33,6 +36,9 @@ sql.addModels([
         await sql.sync({alter: true});
         logger.info("DB synced.");
     }
+
+    await redis.connect();
+    logger.info('Redis connected.');
 
     google.options({auth: config.get('youtube.key')});
 

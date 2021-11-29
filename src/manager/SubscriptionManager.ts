@@ -142,7 +142,7 @@ class ChannelSubscriptionManager {
             include: [WebSub],
             where: {
                 discord_channel_id: this._channel.id,
-                '$web_subs.youtube_channel_id$': youtube_channel,
+                '$websub.youtube_channel_id$': youtube_channel,
             }
         }) > 0;
     }
@@ -156,7 +156,7 @@ class ChannelSubscriptionManager {
             defaults: data,
         });
         data = {
-            websub_id: youtube_channel,
+            websub_id: websub.id,
             discord_channel_id: this._channel.id,
         }
         if (this._channel.type !== 'DM') {
@@ -179,7 +179,7 @@ class ChannelSubscriptionManager {
             include: [WebSub],
             where: {
                 discord_channel_id: this._channel.id,
-                '$web_subs.youtube_channel_id$': youtube_channel,
+                '$websub.youtube_channel_id$': youtube_channel,
             }
         });
         if (!subscription) {
@@ -202,8 +202,8 @@ class ChannelSubscriptionManager {
         if (destroyed > 0) {
             let subs = await WebSub.findAll({
                 include: [Subscription],
-                group: ['websubs.id'],
-                where: where(fn('COUNT', col('subscriptions.id')), '0')
+                group: ['websub.id'],
+                where: where(fn('COUNT', col('subscription.id')), '0')
             });
             for (let websub of subs) {
                 await websub.subscribe('unsubscribe');
@@ -226,7 +226,7 @@ class ChannelSubscriptionManager {
             include: [WebSub],
             where: {
                 discord_channel_id: this._channel.id,
-                '$web_subs.youtube_channel_id$': youtube_channel,
+                '$websub.youtube_channel_id$': youtube_channel,
             }
         });
     }

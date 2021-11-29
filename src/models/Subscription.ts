@@ -5,7 +5,16 @@ import {WebSub} from "./WebSub";
 import {NotificationType, SubscriptionManager} from "../manager/SubscriptionManager";
 import {YoutubeVideo} from "./YoutubeVideo";
 
-@Table({tableName: 'subscriptions', createdAt: 'created_at', updatedAt: 'updated_at'})
+@Table({
+    tableName: 'subscriptions',
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    indexes: [{
+        name: 'websub_notification_on_channel',
+        unique: true,
+        fields: ['discord_channel_id', 'websub_id']}
+    ]
+})
 export class Subscription extends Model<Subscription> {
 
     @BeforeValidate
@@ -21,10 +30,10 @@ export class Subscription extends Model<Subscription> {
     @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: true})
     public discord_guild_id: number;
 
-    @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'websub_notification_on_channel'})
+    @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false})
     public discord_channel_id: number;
 
-    @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'websub_notification_on_channel'})
+    @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false})
     public websub_id: number;
 
     @Column({type: DataTypes.STRING, allowNull: true})

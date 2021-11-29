@@ -33,7 +33,7 @@ export class WebSubController extends BaseController {
             let videos = await YoutubeVideo.findAll({
                 attributes: ['video_id'],
                 where: {
-                    sub_id: websub.id
+                    websub_id: websub.id
                 }
             }).map(v => v.video_id);
             await Notification.destroy({
