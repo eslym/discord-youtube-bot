@@ -294,7 +294,7 @@ exports.YoutubeCommand = {
         type: 1 /* CHAT_INPUT */,
         name: 'youtube',
         description: 'Operate youtube subscriptions on channel',
-        defaultPermission: true,
+        defaultPermission: false,
         options: [
             {
                 name: 'search',

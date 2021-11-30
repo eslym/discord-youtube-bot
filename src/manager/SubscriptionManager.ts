@@ -257,7 +257,7 @@ class Manager implements ChannelSubscriptionManager {
             url: video.url,
         }
         if (subscription.mention && subscription.mention.length > 0) {
-            data['mentions'] = format(config('$.notifications.mentions'), {
+            data['mentions'] = format(config('$.notification.mentions'), {
                 mentions: subscription.mention.map(m=>`<@!${m}>`).join('')
             });
         }
