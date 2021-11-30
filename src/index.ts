@@ -24,7 +24,7 @@ sql.addModels([
 
 (async () => {
     if (config.get('database.sync')) {
-        await sql.sync({alter: true});
+        await sql.sync({alter: true, force: false});
         logger.info("DB synced.");
     }
 
