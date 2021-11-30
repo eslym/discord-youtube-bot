@@ -258,7 +258,7 @@ class Manager implements ChannelSubscriptionManager {
         }
         if (subscription.mention && subscription.mention.length > 0) {
             data['mentions'] = format(config('$.notification.mentions'), {
-                mentions: subscription.mention.map(m=>`<@${m}>`).join('')
+                mentions: subscription.mention.map(m=>`<@&${m}>`).join('')
             });
         }
         if (video.live_at) {
