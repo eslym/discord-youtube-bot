@@ -24,7 +24,7 @@ sql_1.sequelize.addModels([
 ]);
 (async () => {
     if (config.get('database.sync')) {
-        await sql_1.sequelize.sync({ alter: true });
+        await sql_1.sequelize.sync({ alter: true, force: false });
         logger_1.logger.info("DB synced.");
     }
     await redis_1.redis.connect();
