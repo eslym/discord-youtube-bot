@@ -130,7 +130,8 @@ export class WebSubController extends BaseController {
                             await Notification.create({
                                 type: NotificationType.LIVE,
                                 video_id: id,
-                                scheduled_at: new Date()
+                                scheduled_at: new Date(),
+                                notified_at: new Date(),
                             });
                             continue;
                         }
@@ -141,7 +142,8 @@ export class WebSubController extends BaseController {
                     await Notification.create({
                         type: NotificationType.VIDEO,
                         video_id: id,
-                        scheduled_at: new Date()
+                        scheduled_at: new Date(),
+                        notified_at: new Date(),
                     });
                     continue;
                 }
@@ -182,7 +184,8 @@ export class WebSubController extends BaseController {
                     await Notification.create({
                         type: NotificationType.RESCHEDULE,
                         video_id: id,
-                        scheduled_at: new Date()
+                        scheduled_at: new Date(),
+                        notified_at: new Date(),
                     });
                 }
             }
