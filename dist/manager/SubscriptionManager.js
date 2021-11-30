@@ -229,7 +229,7 @@ class Manager {
         };
         if (subscription.mention && subscription.mention.length > 0) {
             data['mentions'] = (0, config_1.format)((0, config_1.get)('$.notification.mentions'), {
-                mentions: subscription.mention.map(m => `<@!${m}>`).join('')
+                mentions: subscription.mention.map(m => `<@${m}>`).join('')
             });
         }
         if (video.live_at) {
