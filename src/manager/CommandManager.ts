@@ -20,7 +20,8 @@ export module CommandManager {
         let cmds = await guild.commands.fetch();
         await CommandMap.destroy({
             where: {
-                id: {[Op.notIn]: Array.from(cmds.keys())}
+                id: {[Op.notIn]: Array.from(cmds.keys())},
+                guild_id: guild.id,
             }
         });
         let mappings: Dict<CommandMap> = await CommandMap.findAll({

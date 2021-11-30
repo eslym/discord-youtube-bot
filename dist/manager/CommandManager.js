@@ -18,7 +18,8 @@ var CommandManager;
         let cmds = await guild.commands.fetch();
         await CommandMap_1.CommandMap.destroy({
             where: {
-                id: { [sequelize_1.Op.notIn]: Array.from(cmds.keys()) }
+                id: { [sequelize_1.Op.notIn]: Array.from(cmds.keys()) },
+                guild_id: guild.id,
             }
         });
         let mappings = await CommandMap_1.CommandMap.findAll({
