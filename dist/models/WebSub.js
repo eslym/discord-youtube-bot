@@ -43,7 +43,7 @@ let WebSub = class WebSub extends sequelize_typescript_1.Model {
         }
         let res = await googleapis_1.google.youtube('v3').channels.list({
             id: [this.youtube_channel_id],
-            part: ['snippet'],
+            part: ['snippet', 'statistics'],
         });
         if (res.data.pageInfo.totalResults === 0) {
             return null;

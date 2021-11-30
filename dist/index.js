@@ -14,6 +14,7 @@ const sequelize_1 = require("sequelize");
 const cron = require("node-cron");
 const moment = require("moment");
 const CommandMap_1 = require("./models/CommandMap");
+const redis_1 = require("./redis");
 sql_1.sequelize.addModels([
     Notification_1.Notification,
     Subscription_1.Subscription,
@@ -22,18 +23,12 @@ sql_1.sequelize.addModels([
     CommandMap_1.CommandMap,
 ]);
 (async () => {
-    if (config.get('discord.inviteLink')) {
-        let url = new URL('https://discord.com/oauth2/authorize');
-        url.searchParams.set('client_id', config.get('discord.appId'));
-        url.searchParams.set('scope', 'bot applications.commands');
-        url.searchParams.set('permissions', '224256');
-        logger_1.logger.info('Use the following link to add this bot into server.');
-        logger_1.logger.info(url.toString());
-    }
     if (config.get('database.sync')) {
         await sql_1.sequelize.sync({ alter: true });
         logger_1.logger.info("DB synced.");
     }
+    await redis_1.redis.connect();
+    logger_1.logger.info('Redis connected.');
     googleapis_1.google.options({ auth: config.get('youtube.key') });
     server_1.server.listen(config.get('websub.port', config.get('websub.host')), () => {
         logger_1.logger.info('Websub listener ready.');

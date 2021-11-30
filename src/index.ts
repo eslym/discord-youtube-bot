@@ -23,15 +23,6 @@ sql.addModels([
 ]);
 
 (async () => {
-    if (config.get('discord.inviteLink')) {
-        let url = new URL('https://discord.com/oauth2/authorize');
-        url.searchParams.set('client_id', config.get('discord.appId'));
-        url.searchParams.set('scope', 'bot applications.commands');
-        url.searchParams.set('permissions', '224256');
-        logger.info('Use the following link to add this bot into server.');
-        logger.info(url.toString());
-    }
-
     if (config.get('database.sync')) {
         await sql.sync({alter: true});
         logger.info("DB synced.");

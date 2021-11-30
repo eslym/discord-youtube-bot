@@ -55,16 +55,16 @@ __decorate([
     __metadata("design:type", Number)
 ], Subscription.prototype, "discord_guild_id", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'websub_notification_on_channel' }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, allowNull: false }),
     __metadata("design:type", Number)
 ], Subscription.prototype, "discord_channel_id", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, allowNull: false, unique: 'websub_notification_on_channel' }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BIGINT.UNSIGNED, allowNull: false }),
     __metadata("design:type", Number)
 ], Subscription.prototype, "websub_id", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: true }),
-    __metadata("design:type", String)
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.JSON, allowNull: true }),
+    __metadata("design:type", Array)
 ], Subscription.prototype, "mention", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BOOLEAN, defaultValue: true }),
@@ -93,7 +93,17 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], Subscription, "makeId", null);
 Subscription = Subscription_1 = __decorate([
-    (0, sequelize_typescript_1.Table)({ tableName: 'subscriptions', createdAt: 'created_at', updatedAt: 'updated_at' })
+    (0, sequelize_typescript_1.Table)({
+        tableName: 'subscriptions',
+        createdAt: 'created_at',
+        updatedAt: 'updated_at',
+        indexes: [{
+                name: 'websub_notification_on_channel',
+                unique: true,
+                fields: ['discord_channel_id', 'websub_id']
+            }
+        ]
+    })
 ], Subscription);
 exports.Subscription = Subscription;
 

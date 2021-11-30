@@ -49,7 +49,7 @@ export class WebSubController extends BaseController {
             let ids = await Subscription.findAll({
                 attributes: ['id'],
                 where: {
-                    sub_id: websub.id,
+                    websub_id: websub.id,
                 }
             }).map(s => s.id);
             await Subscription.destroy({
@@ -102,7 +102,7 @@ export class WebSubController extends BaseController {
                 if (!ytVideo) {
                     ytVideo = await YoutubeVideo.create({
                         video_id: id,
-                        sub_id: websub.id,
+                        websub_id: websub.id,
                     });
                     let videoSnippet: Schema$Video;
                     try {

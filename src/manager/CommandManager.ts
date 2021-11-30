@@ -58,6 +58,7 @@ export module CommandManager {
                 guild_id: guild.id,
             });
         }
+        logger.info(`Command synced for ${guild.id}(${guild.name}).`);
     }
 
     export async function boot() {

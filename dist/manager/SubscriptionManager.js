@@ -30,7 +30,7 @@ var SubscriptionManager;
         if (ch.type !== 'DM' && ch.type !== 'GUILD_TEXT' && ch.type !== 'GUILD_NEWS') {
             throw new TypeError('Channel is not text based.');
         }
-        return new ChannelSubscriptionManager(ch);
+        return new Manager(ch);
     }
     SubscriptionManager.get = get;
     function boot() {
@@ -122,16 +122,19 @@ var SubscriptionManager;
     }
     SubscriptionManager.checkVideoUpdates = checkVideoUpdates;
 })(SubscriptionManager = exports.SubscriptionManager || (exports.SubscriptionManager = {}));
-class ChannelSubscriptionManager {
+class Manager {
     constructor(channel) {
         this._channel = channel;
+    }
+    getChannel() {
+        return this._channel;
     }
     async hasSubscription(youtube_channel) {
         return await Subscription_1.Subscription.count({
             include: [WebSub_1.WebSub],
             where: {
                 discord_channel_id: this._channel.id,
-                '$web_subs.youtube_channel_id$': youtube_channel,
+                '$websub.youtube_channel_id$': youtube_channel,
             }
         }) > 0;
     }
@@ -144,7 +147,7 @@ class ChannelSubscriptionManager {
             defaults: data,
         });
         data = {
-            websub_id: youtube_channel,
+            websub_id: websub.id,
             discord_channel_id: this._channel.id,
         };
         if (this._channel.type !== 'DM') {
@@ -166,7 +169,7 @@ class ChannelSubscriptionManager {
             include: [WebSub_1.WebSub],
             where: {
                 discord_channel_id: this._channel.id,
-                '$web_subs.youtube_channel_id$': youtube_channel,
+                '$websub.youtube_channel_id$': youtube_channel,
             }
         });
         if (!subscription) {
@@ -188,8 +191,8 @@ class ChannelSubscriptionManager {
         if (destroyed > 0) {
             let subs = await WebSub_1.WebSub.findAll({
                 include: [Subscription_1.Subscription],
-                group: ['websubs.id'],
-                where: (0, sequelize_1.where)((0, sequelize_1.fn)('COUNT', (0, sequelize_1.col)('subscriptions.id')), '0')
+                group: ['websub.id'],
+                where: (0, sequelize_1.where)((0, sequelize_1.fn)('COUNT', (0, sequelize_1.col)('subscription.id')), '0')
             });
             for (let websub of subs) {
                 await websub.subscribe('unsubscribe');
@@ -210,7 +213,7 @@ class ChannelSubscriptionManager {
             include: [WebSub_1.WebSub],
             where: {
                 discord_channel_id: this._channel.id,
-                '$web_subs.youtube_channel_id$': youtube_channel,
+                '$websub.youtube_channel_id$': youtube_channel,
             }
         });
     }
@@ -224,8 +227,10 @@ class ChannelSubscriptionManager {
             title: meta.snippet.title,
             url: video.url,
         };
-        if (subscription.mention) {
-            data['mentions'] = (0, config_1.format)((0, config_1.get)('$.notifications.mentions'), { mentions: subscription.mention });
+        if (subscription.mention && subscription.mention.length > 0) {
+            data['mentions'] = (0, config_1.format)((0, config_1.get)('$.notifications.mentions'), {
+                mentions: subscription.mention.map(m => `<@!${m}>`).join('')
+            });
         }
         if (video.live_at) {
             data['schedule'] = moment(video.live_at)

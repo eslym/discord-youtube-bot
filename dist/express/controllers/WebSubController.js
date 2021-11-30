@@ -35,7 +35,7 @@ class WebSubController extends BaseController_1.BaseController {
             let videos = await YoutubeVideo_1.YoutubeVideo.findAll({
                 attributes: ['video_id'],
                 where: {
-                    sub_id: websub.id
+                    websub_id: websub.id
                 }
             }).map(v => v.video_id);
             await Notification_1.Notification.destroy({
@@ -51,7 +51,7 @@ class WebSubController extends BaseController_1.BaseController {
             let ids = await Subscription_1.Subscription.findAll({
                 attributes: ['id'],
                 where: {
-                    sub_id: websub.id,
+                    websub_id: websub.id,
                 }
             }).map(s => s.id);
             await Subscription_1.Subscription.destroy({
@@ -104,7 +104,7 @@ class WebSubController extends BaseController_1.BaseController {
                 if (!ytVideo) {
                     ytVideo = await YoutubeVideo_1.YoutubeVideo.create({
                         video_id: id,
-                        sub_id: websub.id,
+                        websub_id: websub.id,
                     });
                     let videoSnippet;
                     try {

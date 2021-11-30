@@ -38,7 +38,7 @@ export module SubscriptionManager {
         if (ch.type !== 'DM' && ch.type !== 'GUILD_TEXT' && ch.type !== 'GUILD_NEWS') {
             throw new TypeError('Channel is not text based.');
         }
-        return new ChannelSubscriptionManager(ch as TextBasedChannels);
+        return new Manager(ch as TextBasedChannels);
     }
 
     export function boot() {
@@ -130,11 +130,26 @@ export module SubscriptionManager {
     }
 }
 
-class ChannelSubscriptionManager {
+export interface ChannelSubscriptionManager {
+    getChannel(): TextBasedChannels;
+    hasSubscription(youtube_channel: string): Promise<boolean>;
+    subscribe(youtube_channel: string, options?: ChannelSubscribeOptions): Promise<boolean>;
+    unsubscribe(youtube_channel: string): Promise<boolean>;
+    unsubscribeAll(): Promise<number>;
+    listSubscription(): Promise<Subscription[]>;
+    getSubscription(youtube_channel: string): Promise<Subscription>;
+    notify(type: NotificationType, subscription: Subscription, video: YoutubeVideo): Promise<boolean>;
+}
+
+class Manager implements ChannelSubscriptionManager {
     protected _channel: TextBasedChannels;
 
     constructor(channel: TextBasedChannels) {
         this._channel = channel;
+    }
+
+    getChannel(){
+        return this._channel;
     }
 
     async hasSubscription(youtube_channel: string): Promise<boolean> {
@@ -241,8 +256,10 @@ class ChannelSubscriptionManager {
             title: meta.snippet.title,
             url: video.url,
         }
-        if (subscription.mention) {
-            data['mentions'] = format(config('$.notifications.mentions'), {mentions: subscription.mention});
+        if (subscription.mention && subscription.mention.length > 0) {
+            data['mentions'] = format(config('$.notifications.mentions'), {
+                mentions: subscription.mention.map(m=>`<@!${m}>`).join('')
+            });
         }
         if (video.live_at) {
             data['schedule'] = moment(video.live_at)

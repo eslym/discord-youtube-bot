@@ -62,7 +62,7 @@ export class WebSub extends Model<WebSub> {
         }
         let res = await google.youtube('v3').channels.list({
             id: [this.youtube_channel_id],
-            part: ['snippet'],
+            part: ['snippet', 'statistics'],
         });
         if (res.data.pageInfo.totalResults === 0) {
             return null;

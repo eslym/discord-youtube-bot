@@ -15,9 +15,10 @@ var CommandManager;
         commands[command.id] = command;
     }
     async function syncCommand(guild) {
+        let cmds = await guild.commands.fetch();
         await CommandMap_1.CommandMap.destroy({
             where: {
-                id: { [sequelize_1.Op.notIn]: Array.from(guild.commands.cache.keys()) }
+                id: { [sequelize_1.Op.notIn]: Array.from(cmds.keys()) }
             }
         });
         let mappings = await CommandMap_1.CommandMap.findAll({
@@ -25,7 +26,7 @@ var CommandManager;
                 guild_id: guild.id,
             }
         }).then(m => m.map(c => [c.id, c])).then(e => Object.fromEntries(e));
-        let previous = Object.fromEntries(guild.commands.cache.entries());
+        let previous = Object.fromEntries(cmds.entries());
         let missing = Object.fromEntries(Object.entries(commands));
         for (let cmd of guild.commands.cache.values()) {
             if (mappings.hasOwnProperty(cmd.id)) {
@@ -55,6 +56,7 @@ var CommandManager;
                 guild_id: guild.id,
             });
         }
+        logger_1.logger.info(`Command synced for ${guild.id}(${guild.name}).`);
     }
     async function boot() {
         bot_1.bot.on('interactionCreate', (0, catchLog_1.catchLog)(CommandManager.execute));

@@ -36,8 +36,8 @@ export class Subscription extends Model<Subscription> {
     @Column({type: DataTypes.BIGINT.UNSIGNED, allowNull: false})
     public websub_id: number;
 
-    @Column({type: DataTypes.STRING, allowNull: true})
-    public mention: string;
+    @Column({type: DataTypes.JSON, allowNull: true})
+    public mention: string[];
 
     @Column({type: DataTypes.BOOLEAN, defaultValue: true})
     public notify_video;
