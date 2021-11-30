@@ -70,7 +70,7 @@ __decorate([
     __metadata("design:type", Number)
 ], WebSub.prototype, "id", void 0);
 __decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false, unique: true }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.STRING, allowNull: false }),
     __metadata("design:type", String)
 ], WebSub.prototype, "youtube_channel_id", void 0);
 __decorate([

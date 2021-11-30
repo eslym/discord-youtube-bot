@@ -27,7 +27,7 @@ export class WebSub extends Model<WebSub> {
     @Column({type: DataTypes.BIGINT.UNSIGNED, primaryKey: true})
     public id: number;
 
-    @Column({type: DataTypes.STRING, allowNull: false, unique: true})
+    @Column({type: DataTypes.STRING, allowNull: false})
     public youtube_channel_id: string;
 
     @Column({type: DataTypes.STRING, allowNull: false})
