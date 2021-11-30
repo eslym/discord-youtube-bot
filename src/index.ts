@@ -37,8 +37,7 @@ sql.addModels([
         logger.info('Websub listener ready.');
     });
 
-    // Setup cron for renew websub
-    cron.schedule('*/5 * * * *', () => {
+    let checkWebSub = () => {
         WebSub.findAll({
             where: {
                 [Op.or]: [
@@ -51,7 +50,11 @@ sql.addModels([
                 await websub.subscribe();
             }
         }).catch(error => logger.error(error));
-    });
+    };
+
+    // Setup cron for renew websub
+    cron.schedule('*/5 * * * *', checkWebSub);
+    await checkWebSub();
 
     await bot.login(config.get('discord.token'));
 })().catch(e => {

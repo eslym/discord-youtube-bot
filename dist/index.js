@@ -33,8 +33,7 @@ sql_1.sequelize.addModels([
     server_1.server.listen(config.get('websub.port', config.get('websub.host')), () => {
         logger_1.logger.info('Websub listener ready.');
     });
-    // Setup cron for renew websub
-    cron.schedule('*/5 * * * *', () => {
+    let checkWebSub = () => {
         WebSub_1.WebSub.findAll({
             where: {
                 [sequelize_1.Op.or]: [
@@ -47,7 +46,10 @@ sql_1.sequelize.addModels([
                 await websub.subscribe();
             }
         }).catch(error => logger_1.logger.error(error));
-    });
+    };
+    // Setup cron for renew websub
+    cron.schedule('*/5 * * * *', checkWebSub);
+    await checkWebSub();
     await bot_1.bot.login(config.get('discord.token'));
 })().catch(e => {
     logger_1.logger.error(e);
