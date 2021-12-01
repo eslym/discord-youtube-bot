@@ -72,8 +72,8 @@ async function makeChannelActions(manager, channelId) {
             .setOptions(roles.map(r => ({
             label: r.name,
             description: r.id,
-            value: r.id,
-            default: sub.mention && sub.mention.indexOf(r.id) >= 0
+            value: r.toString(),
+            default: sub.mention && sub.mention.includes(r.toString()),
         })))
             .setMinValues(0)
             .setMaxValues(Math.min(25, roles.size));
