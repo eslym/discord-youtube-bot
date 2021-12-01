@@ -54,7 +54,7 @@ var SubscriptionManager;
             try {
                 let video = notification.video;
                 let websub = await video.$get('subscription');
-                let subscriptions = await websub.get('subscriptions');
+                let subscriptions = await websub.$get('subscriptions');
                 for (let sub of subscriptions) {
                     await sub.notify(notification.type, video);
                 }
