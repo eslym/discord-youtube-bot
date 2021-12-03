@@ -16,9 +16,15 @@ const moment = require("moment");
 let booted = false;
 async function cleanUpWebSub() {
     let subs = await WebSub_1.WebSub.findAll({
-        attributes: ['web_subs.id', [(0, sequelize_1.fn)('COUNT', (0, sequelize_1.col)('subscriptions.id')), 'subs']],
-        include: [Subscription_1.Subscription],
-        group: ['web_subs.id'],
+        attributes: {
+            include: ['WebSub.id', [(0, sequelize_1.fn)('COUNT', (0, sequelize_1.col)('subscriptions.id')), 'subs']],
+            exclude: Object.keys(WebSub_1.WebSub.rawAttributes).filter(k => k !== 'id'),
+        },
+        include: [{
+                model: Subscription_1.Subscription,
+                attributes: { exclude: Object.keys(Subscription_1.Subscription.rawAttributes) }
+            }],
+        group: ['WebSub.id'],
         having: {
             subs: 0
         }

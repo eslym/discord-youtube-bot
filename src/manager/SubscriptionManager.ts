@@ -23,9 +23,15 @@ let booted = false;
 
 async function cleanUpWebSub() {
     let subs = await WebSub.findAll({
-        attributes: ['web_subs.id', [fn('COUNT', col('subscriptions.id')), 'subs']],
-        include: [Subscription],
-        group: ['web_subs.id'],
+        attributes: {
+            include: ['WebSub.id', [fn('COUNT', col('subscriptions.id')), 'subs']],
+            exclude: Object.keys(WebSub.rawAttributes).filter(k=>k!=='id'),
+        },
+        include: [{
+            model: Subscription,
+            attributes: {exclude:Object.keys(Subscription.rawAttributes)}
+        }],
+        group: ['WebSub.id'],
         having: {
             subs: 0
         }
