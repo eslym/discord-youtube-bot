@@ -78,7 +78,7 @@ export module SubscriptionManager {
             try{
                 let video = notification.video;
                 let websub = await video.$get('subscription');
-                let subscriptions = await websub.get('subscriptions');
+                let subscriptions = await websub.$get('subscriptions');
                 for(let sub of subscriptions){
                     await sub.notify(notification.type, video);
                 }
@@ -275,7 +275,7 @@ class Manager implements ChannelSubscriptionManager {
         }
         if (subscription.mention && subscription.mention.length > 0) {
             data['mentions'] = format(config('$.notification.mentions'), {
-                mentions: subscription.mention.map(m=>`<@&${m}>`).join('')
+                mentions: subscription.mention.join('')
             });
         }
         if (video.live_at) {

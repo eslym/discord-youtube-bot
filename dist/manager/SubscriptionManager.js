@@ -71,7 +71,7 @@ var SubscriptionManager;
             try {
                 let video = notification.video;
                 let websub = await video.$get('subscription');
-                let subscriptions = await websub.get('subscriptions');
+                let subscriptions = await websub.$get('subscriptions');
                 for (let sub of subscriptions) {
                     await sub.notify(notification.type, video);
                 }
@@ -246,7 +246,7 @@ class Manager {
         };
         if (subscription.mention && subscription.mention.length > 0) {
             data['mentions'] = (0, config_1.format)((0, config_1.get)('$.notification.mentions'), {
-                mentions: subscription.mention.map(m => `<@&${m}>`).join('')
+                mentions: subscription.mention.join('')
             });
         }
         if (video.live_at) {
