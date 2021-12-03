@@ -103,7 +103,8 @@ export const PermissionCommand: Command = {
             permissions: [perm]
         });
         await interaction.reply({
-            embeds: [embed.info(`Permission ${operation === 'allow' ? 'allowed' : 'denied'} for ${target}`)]
+            embeds: [embed.info(`Permission ${operation === 'allow' ? 'allowed' : 'denied'} for ${target}`)],
+            ephemeral: true,
         });
     }
 }
