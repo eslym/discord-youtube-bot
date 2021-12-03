@@ -1,7 +1,7 @@
 {
   "name": "discord-youtube-bot",
   "version": "1.0.0",
-  "description": "Discord youtube bot",
+  "description": "Discord youtube notification bot",
   "main": "index.js",
   "scripts": {
     "prod": "NODE_ENV=production node index.js",

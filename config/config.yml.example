@@ -1,12 +1,32 @@
 discord:
+  # Token of the bot
   token: ""
+  # Prompt the invite link of this bot to console
   inviteLink: true
 youtube:
+  # Google api key for youtube data api v3
   key: ""
+# =============================================
+# ◇ Web Server
+#
+# You do need a publicly accessible web server
+# to receive notification from the hub
+# @see https://developers.google.com/youtube/v3/guides/push_notifications
+# ============================================
 websub:
+  # Base url to generate the callback url for google pubsubhubbub hub (https://pubsubhubbub.appspot.com/)
   url: "http://localhost"
+  # The ip for webserver to listen to
   host: 127.0.0.1
+  # The port for webserver to listen to
   port: 8080
+# ============================================
+# ◇ Database
+#
+# Theoretically it does support any kind of database
+# which supported by sequelize, but I only develop and
+# test it with mysql, so you know
+# ============================================
 database:
   driver: mysql
   host: 127.0.0.1
@@ -16,8 +36,12 @@ database:
   password: ''
   logging: false
   sync: true
+# ============================================
+# ◇ Localization
+# ============================================
 notification:
   locale: 'en'
+  # refer to momentjs
   timeFormat: 'llll'
   mentions: Hi ${mentions},
   video: |-
