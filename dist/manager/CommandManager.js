@@ -7,6 +7,7 @@ const YoutubeCommand_1 = require("../command/YoutubeCommand");
 const CommandMap_1 = require("../models/CommandMap");
 const sequelize_1 = require("sequelize");
 const logger_1 = require("../logger");
+const PermissionCommand_1 = require("../command/PermissionCommand");
 var CommandManager;
 (function (CommandManager) {
     const commands = {};
@@ -62,6 +63,7 @@ var CommandManager;
     async function boot() {
         bot_1.bot.on('interactionCreate', (0, catchLog_1.catchLog)(CommandManager.execute));
         register(YoutubeCommand_1.YoutubeCommand);
+        register(PermissionCommand_1.PermissionCommand);
         let guilds = await bot_1.bot.guilds.fetch();
         for (let guild of guilds.values()) {
             await syncCommand(await guild.fetch())
@@ -92,6 +94,16 @@ var CommandManager;
         }
     }
     CommandManager.execute = execute;
+    async function findCommand(guild, uuid) {
+        let commands = await guild.commands.fetch();
+        for (let cmd of commands.values()) {
+            if (mapping[cmd.id] === uuid) {
+                return cmd;
+            }
+        }
+        return null;
+    }
+    CommandManager.findCommand = findCommand;
 })(CommandManager = exports.CommandManager || (exports.CommandManager = {}));
 
 //# sourceMappingURL=CommandManager.js.map

@@ -39,6 +39,23 @@ var SubscriptionManager;
         booted = true;
         cron.schedule('* * * * *', (0, catchLog_1.catchLog)(SubscriptionManager.checkNotification));
         cron.schedule('*/5 * * * *', (0, catchLog_1.catchLog)(SubscriptionManager.checkVideoUpdates));
+        bot_1.bot.on('guildDelete', (0, catchLog_1.catchLog)(async (guild) => {
+            let destroyed = await Subscription_1.Subscription.destroy({
+                where: {
+                    discord_guild_id: guild.id,
+                }
+            });
+            if (destroyed > 0) {
+                let subs = await WebSub_1.WebSub.findAll({
+                    include: [Subscription_1.Subscription],
+                    group: ['websub.id'],
+                    where: (0, sequelize_1.where)((0, sequelize_1.fn)('COUNT', (0, sequelize_1.col)('subscription.id')), '0')
+                });
+                for (let websub of subs) {
+                    await websub.subscribe('unsubscribe');
+                }
+            }
+        }));
     }
     SubscriptionManager.boot = boot;
     async function checkNotification() {

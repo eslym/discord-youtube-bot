@@ -30,7 +30,7 @@ notification:
     ${url}
   reschedule: |-
     ${mentions}
-    ${channel} re-scheduled a new live-streaming at ${schedule}.
+    ${channel} re-scheduled a live-streaming at ${schedule}.
     ${url}
   starting: |-
     ${mentions}
