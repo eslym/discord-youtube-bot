@@ -14,6 +14,24 @@ const googleapis_1 = require("googleapis");
 const cron = require("node-cron");
 const moment = require("moment");
 let booted = false;
+async function cleanUpWebSub() {
+    let subs = await WebSub_1.WebSub.findAll({
+        attributes: ['web_subs.id', [(0, sequelize_1.fn)('COUNT', (0, sequelize_1.col)('subscriptions.id')), 'subs']],
+        include: [Subscription_1.Subscription],
+        group: ['web_subs.id'],
+        having: {
+            subs: 0
+        }
+    });
+    subs = await WebSub_1.WebSub.findAll({
+        where: {
+            id: { [sequelize_1.Op.in]: subs.map(s => s.id) }
+        }
+    });
+    for (let websub of subs) {
+        await websub.subscribe('unsubscribe');
+    }
+}
 var SubscriptionManager;
 (function (SubscriptionManager) {
     async function get(channel) {
@@ -46,14 +64,7 @@ var SubscriptionManager;
                 }
             });
             if (destroyed > 0) {
-                let subs = await WebSub_1.WebSub.findAll({
-                    include: [Subscription_1.Subscription],
-                    group: ['websub.id'],
-                    where: (0, sequelize_1.where)((0, sequelize_1.fn)('COUNT', (0, sequelize_1.col)('subscription.id')), '0')
-                });
-                for (let websub of subs) {
-                    await websub.subscribe('unsubscribe');
-                }
+                await cleanUpWebSub();
             }
         }));
     }
@@ -206,14 +217,7 @@ class Manager {
             }
         });
         if (destroyed > 0) {
-            let subs = await WebSub_1.WebSub.findAll({
-                include: [Subscription_1.Subscription],
-                group: ['websub.id'],
-                where: (0, sequelize_1.where)((0, sequelize_1.fn)('COUNT', (0, sequelize_1.col)('subscription.id')), '0')
-            });
-            for (let websub of subs) {
-                await websub.subscribe('unsubscribe');
-            }
+            await cleanUpWebSub();
         }
         return destroyed;
     }

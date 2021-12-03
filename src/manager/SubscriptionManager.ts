@@ -2,7 +2,7 @@ import {Channel, ChannelResolvable, Guild, TextBasedChannels} from "discord.js";
 import {bot} from "../bot";
 import {Subscription} from "../models/Subscription";
 import {WebSub} from "../models/WebSub";
-import {col, fn, Op, where} from "sequelize";
+import {col, fn, Op} from "sequelize";
 import {catchLog} from "../utils/catchLog";
 import {YoutubeVideo} from "../models/YoutubeVideo";
 import {format, get as config} from "../config";
@@ -20,6 +20,25 @@ interface ChannelSubscribeOptions {
 }
 
 let booted = false;
+
+async function cleanUpWebSub() {
+    let subs = await WebSub.findAll({
+        attributes: ['web_subs.id', [fn('COUNT', col('subscriptions.id')), 'subs']],
+        include: [Subscription],
+        group: ['web_subs.id'],
+        having: {
+            subs: 0
+        }
+    });
+    subs = await WebSub.findAll({
+        where: {
+            id: {[Op.in]: subs.map(s => s.id)}
+        }
+    });
+    for (let websub of subs) {
+        await websub.subscribe('unsubscribe');
+    }
+}
 
 export module SubscriptionManager {
     import Dict = NodeJS.Dict;
@@ -53,14 +72,7 @@ export module SubscriptionManager {
                 }
             });
             if (destroyed > 0) {
-                let subs = await WebSub.findAll({
-                    include: [Subscription],
-                    group: ['websub.id'],
-                    where: where(fn('COUNT', col('subscription.id')), '0')
-                });
-                for (let websub of subs) {
-                    await websub.subscribe('unsubscribe');
-                }
+                await cleanUpWebSub();
             }
         }));
     }
@@ -239,14 +251,7 @@ class Manager implements ChannelSubscriptionManager {
             }
         });
         if (destroyed > 0) {
-            let subs = await WebSub.findAll({
-                include: [Subscription],
-                group: ['websub.id'],
-                where: where(fn('COUNT', col('subscription.id')), '0')
-            });
-            for (let websub of subs) {
-                await websub.subscribe('unsubscribe');
-            }
+            await cleanUpWebSub();
         }
         return destroyed;
     }
