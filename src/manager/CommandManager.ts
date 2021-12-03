@@ -1,4 +1,11 @@
-import {ApplicationCommand, ApplicationCommandData, CommandInteraction, Guild, Interaction} from "discord.js";
+import {
+    ApplicationCommand,
+    ApplicationCommandData,
+    CommandInteraction,
+    Guild,
+    GuildResolvable,
+    Interaction
+} from "discord.js";
 import {bot} from "../bot";
 import {catchLog} from "../utils/catchLog";
 import {YoutubeCommand} from "../command/YoutubeCommand";
@@ -6,6 +13,7 @@ import {CommandMap} from "../models/CommandMap";
 import {Op} from "sequelize";
 import Dict = NodeJS.Dict;
 import {logger} from "../logger";
+import {PermissionCommand} from "../command/PermissionCommand";
 
 export module CommandManager {
 
@@ -64,7 +72,10 @@ export module CommandManager {
 
     export async function boot() {
         bot.on('interactionCreate', catchLog(CommandManager.execute));
+
         register(YoutubeCommand);
+        register(PermissionCommand);
+
         let guilds = await bot.guilds.fetch();
         for(let guild of guilds.values()){
             await syncCommand(await guild.fetch())
@@ -93,6 +104,16 @@ export module CommandManager {
             let cmd_id = mapping[interaction.commandId];
             await commands[cmd_id].handle(interaction);
         }
+    }
+
+    export async function findCommand(guild: Guild, uuid: string){
+        let commands = await guild.commands.fetch();
+        for (let cmd of commands.values()){
+            if(mapping[cmd.id] === uuid){
+                return cmd;
+            }
+        }
+        return null;
     }
 }
 

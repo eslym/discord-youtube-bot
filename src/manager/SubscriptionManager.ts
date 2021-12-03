@@ -1,4 +1,4 @@
-import {Channel, ChannelResolvable, TextBasedChannels} from "discord.js";
+import {Channel, ChannelResolvable, Guild, TextBasedChannels} from "discord.js";
 import {bot} from "../bot";
 import {Subscription} from "../models/Subscription";
 import {WebSub} from "../models/WebSub";
@@ -46,6 +46,23 @@ export module SubscriptionManager {
         booted = true;
         cron.schedule('* * * * *', catchLog(SubscriptionManager.checkNotification));
         cron.schedule('*/5 * * * *', catchLog(SubscriptionManager.checkVideoUpdates));
+        bot.on('guildDelete', catchLog(async (guild: Guild)=>{
+            let destroyed = await Subscription.destroy({
+                where: {
+                    discord_guild_id: guild.id,
+                }
+            });
+            if (destroyed > 0) {
+                let subs = await WebSub.findAll({
+                    include: [Subscription],
+                    group: ['websub.id'],
+                    where: where(fn('COUNT', col('subscription.id')), '0')
+                });
+                for (let websub of subs) {
+                    await websub.subscribe('unsubscribe');
+                }
+            }
+        }));
     }
 
     export async function checkNotification() {
