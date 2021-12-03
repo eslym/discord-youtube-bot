@@ -1,19 +1,12 @@
-import {
-    ApplicationCommand,
-    ApplicationCommandData,
-    CommandInteraction,
-    Guild,
-    GuildResolvable,
-    Interaction
-} from "discord.js";
+import {ApplicationCommand, ApplicationCommandData, CommandInteraction, Guild, Interaction} from "discord.js";
 import {bot} from "../bot";
 import {catchLog} from "../utils/catchLog";
 import {YoutubeCommand} from "../command/YoutubeCommand";
 import {CommandMap} from "../models/CommandMap";
 import {Op} from "sequelize";
-import Dict = NodeJS.Dict;
 import {logger} from "../logger";
 import {PermissionCommand} from "../command/PermissionCommand";
+import Dict = NodeJS.Dict;
 
 export module CommandManager {
 
@@ -77,18 +70,18 @@ export module CommandManager {
         register(PermissionCommand);
 
         let guilds = await bot.guilds.fetch();
-        for(let guild of guilds.values()){
+        for (let guild of guilds.values()) {
             await syncCommand(await guild.fetch())
                 .catch(logger.warn);
         }
         bot.on('guildCreate', catchLog(syncCommand));
-        bot.on('guildDelete', catchLog(async (guild: Guild)=>{
+        bot.on('guildDelete', catchLog(async (guild: Guild) => {
             let ids = await CommandMap.findAll({
                 where: {
                     guild_id: guild.id,
                 }
-            }).then(m=>m.map(c=>c.id));
-            for(let id of ids){
+            }).then(m => m.map(c => c.id));
+            for (let id of ids) {
                 delete mapping[id];
             }
             await CommandMap.destroy({
@@ -106,10 +99,10 @@ export module CommandManager {
         }
     }
 
-    export async function findCommand(guild: Guild, uuid: string){
+    export async function findCommand(guild: Guild, uuid: string) {
         let commands = await guild.commands.fetch();
-        for (let cmd of commands.values()){
-            if(mapping[cmd.id] === uuid){
+        for (let cmd of commands.values()) {
+            if (mapping[cmd.id] === uuid) {
                 return cmd;
             }
         }

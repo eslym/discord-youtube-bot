@@ -46,7 +46,7 @@ export module SubscriptionManager {
         booted = true;
         cron.schedule('* * * * *', catchLog(SubscriptionManager.checkNotification));
         cron.schedule('*/5 * * * *', catchLog(SubscriptionManager.checkVideoUpdates));
-        bot.on('guildDelete', catchLog(async (guild: Guild)=>{
+        bot.on('guildDelete', catchLog(async (guild: Guild) => {
             let destroyed = await Subscription.destroy({
                 where: {
                     discord_guild_id: guild.id,
@@ -74,17 +74,17 @@ export module SubscriptionManager {
                 notified_at: null,
             }
         });
-        for(let notification of notifications){
-            try{
+        for (let notification of notifications) {
+            try {
                 let video = notification.video;
                 let websub = await video.$get('subscription');
                 let subscriptions = await websub.$get('subscriptions');
-                for(let sub of subscriptions){
+                for (let sub of subscriptions) {
                     await sub.notify(notification.type, video);
                 }
                 notification.notified_at = new Date();
                 notification.save();
-            } catch (error){
+            } catch (error) {
                 logger.warn(error);
             }
         }
@@ -98,16 +98,16 @@ export module SubscriptionManager {
                 '$notifications.notified_at$': null,
             }
         });
-        if(videos.length === 0){
+        if (videos.length === 0) {
             return;
         }
         let ids = videos.map(v => v.video_id);
         let dict: Dict<YoutubeVideo> = Object
-            .fromEntries(videos.map(v=>[v.video_id, v]));
+            .fromEntries(videos.map(v => [v.video_id, v]));
         let res = await google.youtube('v3').videos.list({
             id: ids, part: ['id', 'liveStreamingDetails']
         });
-        for(let schema of res.data.items){
+        for (let schema of res.data.items) {
             if (
                 !schema.liveStreamingDetails ||
                 !schema.liveStreamingDetails.scheduledStartTime ||
@@ -149,12 +149,19 @@ export module SubscriptionManager {
 
 export interface ChannelSubscriptionManager {
     getChannel(): TextBasedChannels;
+
     hasSubscription(youtube_channel: string): Promise<boolean>;
+
     subscribe(youtube_channel: string, options?: ChannelSubscribeOptions): Promise<boolean>;
+
     unsubscribe(youtube_channel: string): Promise<boolean>;
+
     unsubscribeAll(): Promise<number>;
+
     listSubscription(): Promise<Subscription[]>;
+
     getSubscription(youtube_channel: string): Promise<Subscription>;
+
     notify(type: NotificationType, subscription: Subscription, video: YoutubeVideo): Promise<boolean>;
 }
 
@@ -165,7 +172,7 @@ class Manager implements ChannelSubscriptionManager {
         this._channel = channel;
     }
 
-    getChannel(){
+    getChannel() {
         return this._channel;
     }
 

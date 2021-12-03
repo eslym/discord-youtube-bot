@@ -11,10 +11,10 @@ const server_1 = require("./express/server");
 const googleapis_1 = require("googleapis");
 const bot_1 = require("./bot");
 const sequelize_1 = require("sequelize");
-const cron = require("node-cron");
-const moment = require("moment");
 const CommandMap_1 = require("./models/CommandMap");
 const redis_1 = require("./redis");
+const cron = require("node-cron");
+const moment = require("moment");
 sql_1.sequelize.addModels([
     Notification_1.Notification,
     Subscription_1.Subscription,

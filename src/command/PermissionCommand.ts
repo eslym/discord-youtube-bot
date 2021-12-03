@@ -1,6 +1,6 @@
 import {Command, CommandManager} from "../manager/CommandManager";
 import {ApplicationCommandTypes} from "discord.js/typings/enums";
-import {ApplicationCommandPermissionData, CommandInteraction, Role, RoleResolvable, User} from "discord.js";
+import {ApplicationCommandPermissionData, CommandInteraction} from "discord.js";
 import {YoutubeCommand} from "./YoutubeCommand";
 import {embed} from "../utils/embed";
 
@@ -16,7 +16,7 @@ export const PermissionCommand: Command = {
                 name: 'allow',
                 type: "SUB_COMMAND_GROUP",
                 description: 'Allow a role or user to use youtube command.',
-                options:[
+                options: [
                     {
                         name: 'role',
                         type: 'SUB_COMMAND',
@@ -49,7 +49,7 @@ export const PermissionCommand: Command = {
                 name: 'deny',
                 type: "SUB_COMMAND_GROUP",
                 description: 'Allow a role or user to use youtube command.',
-                options:[
+                options: [
                     {
                         name: 'role',
                         type: 'SUB_COMMAND',
@@ -83,7 +83,7 @@ export const PermissionCommand: Command = {
     async handle(interaction: CommandInteraction) {
         let operation = interaction.options.getSubcommandGroup(true);
         let type = interaction.options.getSubcommand(true);
-        let target: {id} = type === 'user' ?
+        let target: { id } = type === 'user' ?
             interaction.options.getUser('user') :
             interaction.options.getRole('role');
         let remove = type === 'user' ?

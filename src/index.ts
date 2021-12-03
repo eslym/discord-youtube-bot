@@ -9,10 +9,10 @@ import {server} from "./express/server";
 import {google} from "googleapis";
 import {bot} from "./bot";
 import {Op} from "sequelize";
-import cron = require('node-cron');
-import moment = require("moment");
 import {CommandMap} from "./models/CommandMap";
 import {redis} from "./redis";
+import cron = require('node-cron');
+import moment = require("moment");
 
 sql.addModels([
     Notification,

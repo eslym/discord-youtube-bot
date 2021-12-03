@@ -8,7 +8,8 @@ import {
     MessageEmbed,
     MessageSelectMenu,
     MessageSelectOptionData,
-    SelectMenuInteraction, TextChannel
+    SelectMenuInteraction,
+    TextChannel
 } from "discord.js";
 import {ApplicationCommandTypes} from "discord.js/typings/enums";
 import {embed} from "../utils/embed";
@@ -16,11 +17,11 @@ import {google, youtube_v3} from "googleapis";
 import {logger} from "../logger";
 import {ChannelSubscriptionManager, SubscriptionManager} from "../manager/SubscriptionManager";
 import {catchLog} from "../utils/catchLog";
+import {checkbox} from "../utils/checkbox";
+import {WebSub} from "../models/WebSub";
 import Dict = NodeJS.Dict;
 import Schema$SearchResultSnippet = youtube_v3.Schema$SearchResultSnippet;
 import Schema$SearchListResponse = youtube_v3.Schema$SearchListResponse;
-import {checkbox} from "../utils/checkbox";
-import {WebSub} from "../models/WebSub";
 import Schema$Channel = youtube_v3.Schema$Channel;
 import Schema$ChannelListResponse = youtube_v3.Schema$ChannelListResponse;
 
@@ -67,7 +68,7 @@ async function makeChannelActions(manager: ChannelSubscriptionManager, channelId
         new MessageActionRow()
             .addComponents(btnSub)
     ];
-    if(state){
+    if (state) {
         let sub = await manager.getSubscription(channelId);
         let toggles = new MessageActionRow()
             .addComponents(
@@ -88,7 +89,7 @@ async function makeChannelActions(manager: ChannelSubscriptionManager, channelId
         let mentions = new MessageSelectMenu()
             .setCustomId('youtube-mentions')
             .setPlaceholder('No mentions for notification.')
-            .setOptions(roles.map(r=>({
+            .setOptions(roles.map(r => ({
                 label: r.name,
                 description: r.id,
                 value: r.toString(),
@@ -110,15 +111,15 @@ async function handleChannelAction(
     message_id: string,
     youtube_channel: string,
     embeds: MessageEmbed[]
-){
+) {
     let msg = await interaction.channel.messages.fetch(message_id);
     let buttonHandler = msg.createMessageComponentCollector({time: 60000});
     buttonHandler.on('collect', catchLog(async (i: SelectMenuInteraction | ButtonInteraction) => {
-        if(i.isSelectMenu()){
+        if (i.isSelectMenu()) {
             let sub = await manager.getSubscription(youtube_channel);
             sub.mention = i.values;
             await sub.save();
-        } else if(i.customId.startsWith('youtube-notify-')){
+        } else if (i.customId.startsWith('youtube-notify-')) {
             let type = i.customId.slice(15);
             let sub = await manager.getSubscription(youtube_channel);
             sub[`notify_${type}`] = !sub[`notify_${type}`];
@@ -219,7 +220,7 @@ const handlers: Dict<(interaction: CommandInteraction) => Promise<unknown>> = {
         let id = interaction.options.getString('channel_id');
         let websub = new WebSub({youtube_channel_id: id});
         let res: Schema$Channel = await websub.fetchYoutubeChannelMeta();
-        if(res === null){
+        if (res === null) {
             await interaction.reply({
                 embeds: [embed.warn(`Channel "${id}" not found.`)]
             });
@@ -243,8 +244,8 @@ const handlers: Dict<(interaction: CommandInteraction) => Promise<unknown>> = {
     async list(interaction: CommandInteraction) {
         let manager = await SubscriptionManager.get(interaction.channelId);
         let subs = await Promise.all((await manager.listSubscription())
-            .map(s=>s.$get('websub')));
-        if(subs.length === 0){
+            .map(s => s.$get('websub')));
+        if (subs.length === 0) {
             await interaction.reply({
                 embeds: [embed.warn(`No subscriptions for ${interaction.channel}`)],
                 ephemeral: true,
@@ -252,7 +253,7 @@ const handlers: Dict<(interaction: CommandInteraction) => Promise<unknown>> = {
             return;
         }
         let res = await google.youtube('v3').channels.list({
-            id: subs.map(s=>s.youtube_channel_id),
+            id: subs.map(s => s.youtube_channel_id),
             part: ['snippet', 'statistics'],
             maxResults: 10,
         });
@@ -294,7 +295,7 @@ const handlers: Dict<(interaction: CommandInteraction) => Promise<unknown>> = {
                 let pageToken = i.customId === 'youtube-search-prev' ?
                     res.data.prevPageToken : res.data.nextPageToken;
                 res = await google.youtube('v3').channels.list({
-                    id: subs.map(s=>s.youtube_channel_id),
+                    id: subs.map(s => s.youtube_channel_id),
                     part: ['snippet', 'statistics'],
                     maxResults: 10, pageToken
                 });

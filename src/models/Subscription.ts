@@ -12,7 +12,8 @@ import {YoutubeVideo} from "./YoutubeVideo";
     indexes: [{
         name: 'websub_notification_on_channel',
         unique: true,
-        fields: ['discord_channel_id', 'websub_id']}
+        fields: ['discord_channel_id', 'websub_id']
+    }
     ]
 })
 export class Subscription extends Model<Subscription> {
