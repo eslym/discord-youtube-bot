@@ -23,6 +23,13 @@ sql.addModels([
 ]);
 
 (async () => {
+
+    if(config.has('logging')){
+        for(let fn of config.get<((level, record, raw)=>any)[]>('logging')){
+            logger.on('record', fn);
+        }
+    }
+
     if (config.get('database.sync')) {
         await sql.sync({alter: true, force: false});
         logger.info("DB synced.");
@@ -59,5 +66,5 @@ sql.addModels([
     await bot.login(config.get('discord.token'));
 })().catch(e => {
     logger.error(e);
-    process.exit(1);
+    process.exitCode = 1;
 });

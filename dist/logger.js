@@ -18,7 +18,7 @@ for (let level of ['log', 'info', 'warn', 'error']) {
         let prepend = `[${moment().format('YYYY-MM-DD HH:mm:ss')}][${level.toUpperCase()}]`;
         let indent = os.EOL + ' '.repeat(prepend.length);
         for (let record of data) {
-            let str = util.inspect(record);
+            let str = util.inspect(record, false, 2, false);
             this.emit('record', level, prepend + str.split(/\r?\n|\n?\r/).join(indent), record);
         }
     };
@@ -43,6 +43,7 @@ const config = {
 };
 function StdioListener(level, record, data) {
     config[level].io.write(config[level].color + record);
+    config[level].io.write(os.EOL + ansi.style.reset);
     inspector.console[level](data);
 }
 exports.StdioListener = StdioListener;

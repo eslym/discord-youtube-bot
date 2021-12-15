@@ -23,6 +23,11 @@ sql_1.sequelize.addModels([
     CommandMap_1.CommandMap,
 ]);
 (async () => {
+    if (config.has('logging')) {
+        for (let fn of config.get('logging')) {
+            logger_1.logger.on('record', fn);
+        }
+    }
     if (config.get('database.sync')) {
         await sql_1.sequelize.sync({ alter: true, force: false });
         logger_1.logger.info("DB synced.");
@@ -53,7 +58,7 @@ sql_1.sequelize.addModels([
     await bot_1.bot.login(config.get('discord.token'));
 })().catch(e => {
     logger_1.logger.error(e);
-    process.exit(1);
+    process.exitCode = 1;
 });
 
 //# sourceMappingURL=index.js.map
