@@ -5,7 +5,7 @@ import {WebSub} from "../models/WebSub";
 import {col, fn, Op} from "sequelize";
 import {catchLog} from "../utils/catchLog";
 import {YoutubeVideo} from "../models/YoutubeVideo";
-import {format, get as config} from "../config";
+import {format} from "../format";
 import {Notification} from "../models/Notification";
 import {logger} from "../logger";
 import {google} from "googleapis";
@@ -25,11 +25,11 @@ async function cleanUpWebSub() {
     let subs = await WebSub.findAll({
         attributes: {
             include: ['WebSub.id', [fn('COUNT', col('subscriptions.id')), 'subs']],
-            exclude: Object.keys(WebSub.rawAttributes).filter(k=>k!=='id'),
+            exclude: Object.keys(WebSub.rawAttributes).filter(k => k !== 'id'),
         },
         include: [{
             model: Subscription,
-            attributes: {exclude:Object.keys(Subscription.rawAttributes)}
+            attributes: {exclude: Object.keys(Subscription.rawAttributes)}
         }],
         group: ['WebSub.id'],
         having: {
@@ -286,23 +286,13 @@ class Manager implements ChannelSubscriptionManager {
             return false;
         }
         let meta = await video.fetchYoutubeVideoMeta();
-        let data = {
+        let notification = format[type]({
+            mentions: subscription.mention ?? [],
             channel: meta.snippet.channelTitle,
             title: meta.snippet.title,
             url: video.url,
-        }
-        if (subscription.mention && subscription.mention.length > 0) {
-            data['mentions'] = format(config('$.notification.mentions'), {
-                mentions: subscription.mention.join('')
-            });
-        }
-        if (video.live_at) {
-            data['schedule'] = moment(video.live_at)
-                .locale(config('$.notification.locale'))
-                .format(config('$.notification.timeFormat'));
-        }
-        let notification = format(config(`$.notification.${type}`), data);
-        await this._channel.send(notification);
+        });
+        await this._channel.send(notification.trim());
         return true;
     }
 }

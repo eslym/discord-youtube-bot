@@ -1,7 +1,7 @@
 import {Sequelize} from "sequelize-typescript";
-import * as config from './config';
 import {logger} from "./logger";
 import * as moment from 'moment';
+import config = require("config");
 
 export const sequelize: Sequelize = new Sequelize(
     config.get('database.database'),
@@ -12,7 +12,9 @@ export const sequelize: Sequelize = new Sequelize(
         logging: config.get('database.logging') ? logger.log : false,
         host: config.get('database.host'),
         port: config.get('database.port'),
-        timezone: config.get('database.timezone', moment().format('Z')),
+        timezone: config.has('database.timezone') ?
+            config.get('database.timezone') :
+            moment().format('Z'),
         define: {
             charset: 'utf8',
             collate: 'utf8_general_ci',

@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const config = require("./config");
 const sql_1 = require("./sql");
 const logger_1 = require("./logger");
 const Notification_1 = require("./models/Notification");
@@ -15,6 +14,7 @@ const CommandMap_1 = require("./models/CommandMap");
 const redis_1 = require("./redis");
 const cron = require("node-cron");
 const moment = require("moment");
+const config = require("config");
 sql_1.sequelize.addModels([
     Notification_1.Notification,
     Subscription_1.Subscription,
@@ -30,7 +30,7 @@ sql_1.sequelize.addModels([
     await redis_1.redis.connect();
     logger_1.logger.info('Redis connected.');
     googleapis_1.google.options({ auth: config.get('youtube.key') });
-    server_1.server.listen(config.get('websub.port', config.get('websub.host')), () => {
+    server_1.server.listen(config.get('websub.port'), config.get('websub.host'), () => {
         logger_1.logger.info('Websub listener ready.');
     });
     let checkWebSub = () => {

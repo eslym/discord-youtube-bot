@@ -16,11 +16,11 @@ const discord_js_1 = require("discord.js");
 const YoutubeVideo_1 = require("./YoutubeVideo");
 const Subscription_1 = require("./Subscription");
 const axios_1 = require("axios");
-const config_1 = require("../config");
 const googleapis_1 = require("googleapis");
 const logger_1 = require("../logger");
 const redis_1 = require("../redis");
 const crypto = require("crypto");
+const config = require("config");
 let WebSub = class WebSub extends sequelize_typescript_1.Model {
     static makeId(self) {
         if (!self.id) {
@@ -55,7 +55,7 @@ let WebSub = class WebSub extends sequelize_typescript_1.Model {
     }
     async subscribe(mode = 'subscribe') {
         let data = new URLSearchParams();
-        data.append('hub.callback', `${(0, config_1.get)('websub.url')}/websub/${this.id}`);
+        data.append('hub.callback', `${config.get('websub.url')}/websub/${this.id}`);
         data.append('hub.mode', mode);
         data.append('hub.topic', this.topic_url);
         data.append('hub.secret', this.secret);

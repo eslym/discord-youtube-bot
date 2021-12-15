@@ -1,15 +1,41 @@
 import * as ansi from 'ansi-escape-sequences';
-import {Console} from 'console';
+import {EventEmitter} from "events";
+import * as util from "util";
+import * as os from "os";
+import * as inspector from "inspector";
 import moment = require("moment");
 
-type LogFn = (...data: any) => void;
-type Logger = { log: LogFn, info: LogFn, debug: LogFn, warn: LogFn, error: LogFn }
+type LogFn = (this: Logger, ...data: any) => void;
 
-const _console = new Console({
-    stdout: process.stdout,
-    stderr: process.stderr,
-    colorMode: false,
-});
+export type LogLevel = 'log' | 'info' | 'warn' | 'error';
+
+export declare interface Logger {
+    on(event: 'record', listener: (level: LogLevel, data: string, raw: any) => any): this;
+
+    once(event: 'record', listener: (level: LogLevel, data: string, raw: any) => any): this;
+}
+
+export class Logger extends EventEmitter {
+    readonly log: LogFn;
+    readonly info: LogFn;
+    readonly warn: LogFn;
+    readonly error: LogFn;
+
+    constructor() {
+        super();
+    }
+}
+
+for (let level of ['log', 'info', 'warn', 'error']) {
+    Logger.prototype[level] = function (...data: any) {
+        let prepend = `[${moment().format('YYYY-MM-DD HH:mm:ss')}][${level.toUpperCase()}]`;
+        let indent = os.EOL + ' '.repeat(prepend.length);
+        for (let record of data) {
+            let str = util.inspect(record);
+            this.emit('record', level, prepend + str.split(/\r?\n|\n?\r/).join(indent), record);
+        }
+    }
+}
 
 const config = {
     log: {
@@ -18,10 +44,6 @@ const config = {
     },
     info: {
         color: ansi.style.green,
-        io: process.stdout,
-    },
-    debug: {
-        color: ansi.style.cyan,
         io: process.stdout,
     },
     warn: {
@@ -34,11 +56,10 @@ const config = {
     },
 }
 
-export const logger: Logger = {} as any;
-
-for (const fn of Object.keys(config)) {
-    logger[fn] = function () {
-        config[fn].io.write(`${config[fn].color}[${moment().format('YYYY-MM-DD HH:mm:ss')}][${fn.toUpperCase()}] `);
-        _console[fn].apply(_console, arguments);
-    }
+export function StdioListener(level: LogLevel, record: string, data: any) {
+    config[level].io.write(config[level].color + record);
+    (inspector as any as { console: Console }).console[level](data);
 }
+
+export const logger = new Logger();
+logger.on('record', StdioListener);

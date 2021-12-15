@@ -7,7 +7,7 @@ const WebSub_1 = require("../models/WebSub");
 const sequelize_1 = require("sequelize");
 const catchLog_1 = require("../utils/catchLog");
 const YoutubeVideo_1 = require("../models/YoutubeVideo");
-const config_1 = require("../config");
+const format_1 = require("../format");
 const Notification_1 = require("../models/Notification");
 const logger_1 = require("../logger");
 const googleapis_1 = require("googleapis");
@@ -249,23 +249,13 @@ class Manager {
             return false;
         }
         let meta = await video.fetchYoutubeVideoMeta();
-        let data = {
+        let notification = format_1.format[type]({
+            mentions: subscription.mention ?? [],
             channel: meta.snippet.channelTitle,
             title: meta.snippet.title,
             url: video.url,
-        };
-        if (subscription.mention && subscription.mention.length > 0) {
-            data['mentions'] = (0, config_1.format)((0, config_1.get)('$.notification.mentions'), {
-                mentions: subscription.mention.join('')
-            });
-        }
-        if (video.live_at) {
-            data['schedule'] = moment(video.live_at)
-                .locale((0, config_1.get)('$.notification.locale'))
-                .format((0, config_1.get)('$.notification.timeFormat'));
-        }
-        let notification = (0, config_1.format)((0, config_1.get)(`$.notification.${type}`), data);
-        await this._channel.send(notification);
+        });
+        await this._channel.send(notification.trim());
         return true;
     }
 }

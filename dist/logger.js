@@ -1,14 +1,28 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logger = void 0;
+exports.logger = exports.StdioListener = exports.Logger = void 0;
 const ansi = require("ansi-escape-sequences");
-const console_1 = require("console");
+const events_1 = require("events");
+const util = require("util");
+const os = require("os");
+const inspector = require("inspector");
 const moment = require("moment");
-const _console = new console_1.Console({
-    stdout: process.stdout,
-    stderr: process.stderr,
-    colorMode: false,
-});
+class Logger extends events_1.EventEmitter {
+    constructor() {
+        super();
+    }
+}
+exports.Logger = Logger;
+for (let level of ['log', 'info', 'warn', 'error']) {
+    Logger.prototype[level] = function (...data) {
+        let prepend = `[${moment().format('YYYY-MM-DD HH:mm:ss')}][${level.toUpperCase()}]`;
+        let indent = os.EOL + ' '.repeat(prepend.length);
+        for (let record of data) {
+            let str = util.inspect(record);
+            this.emit('record', level, prepend + str.split(/\r?\n|\n?\r/).join(indent), record);
+        }
+    };
+}
 const config = {
     log: {
         color: ansi.style.white,
@@ -16,10 +30,6 @@ const config = {
     },
     info: {
         color: ansi.style.green,
-        io: process.stdout,
-    },
-    debug: {
-        color: ansi.style.cyan,
         io: process.stdout,
     },
     warn: {
@@ -31,12 +41,12 @@ const config = {
         io: process.stderr,
     },
 };
-exports.logger = {};
-for (const fn of Object.keys(config)) {
-    exports.logger[fn] = function () {
-        config[fn].io.write(`${config[fn].color}[${moment().format('YYYY-MM-DD HH:mm:ss')}][${fn.toUpperCase()}] `);
-        _console[fn].apply(_console, arguments);
-    };
+function StdioListener(level, record, data) {
+    config[level].io.write(config[level].color + record);
+    inspector.console[level](data);
 }
+exports.StdioListener = StdioListener;
+exports.logger = new Logger();
+exports.logger.on('record', StdioListener);
 
 //# sourceMappingURL=logger.js.map

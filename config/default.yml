@@ -1,0 +1,24 @@
+# ============================================
+# ◇ Localization
+# ============================================
+notification:
+  locale: 'en'
+  # refer to momentjs
+  timeFormat: 'llll'
+  # handlebars templates
+  video: |-
+    {{#if mentions}}Hi {{#each mentions}}{{this}}{{/each}},{{/if}}
+    {{channel}} has published a new video.
+    {{url}}
+  live: |-
+    {{#if mentions}}Hi {{#each mentions}}{{this}}{{/each}},{{/if}}
+    {{channel}} has scheduled a new live-streaming at {{schedule}}.
+    {{url}}
+  reschedule: |-
+    {{#if mentions}}Hi {{#each mentions}}{{this}}{{/each}},{{/if}}
+    {{channel}} re-scheduled a live-streaming at {{schedule}}.
+    {{url}}
+  starting: |-
+    {{#if mentions}}Hi {{#each mentions}}{{this}}{{/each}},{{/if}}
+    {{channel}} is gonna to start a live streaming soon.
+    {{url}}

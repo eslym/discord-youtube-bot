@@ -1,4 +1,3 @@
-import * as config from './config';
 import {sequelize as sql} from "./sql";
 import {logger} from "./logger";
 import {Notification} from "./models/Notification";
@@ -13,6 +12,7 @@ import {CommandMap} from "./models/CommandMap";
 import {redis} from "./redis";
 import cron = require('node-cron');
 import moment = require("moment");
+import config = require("config");
 
 sql.addModels([
     Notification,
@@ -33,7 +33,7 @@ sql.addModels([
 
     google.options({auth: config.get('youtube.key')});
 
-    server.listen(config.get('websub.port', config.get('websub.host')), () => {
+    server.listen(config.get('websub.port'), config.get('websub.host'), () => {
         logger.info('Websub listener ready.');
     });
 

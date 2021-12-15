@@ -2,8 +2,8 @@ import {Client, Intents} from "discord.js";
 import {logger} from "./logger";
 import {SubscriptionManager} from "./manager/SubscriptionManager";
 import {CommandManager} from "./manager/CommandManager";
-import * as config from "./config";
 import {catchLog} from "./utils/catchLog";
+import config = require("config");
 
 let intents = new Intents();
 

@@ -4,11 +4,11 @@ import {SnowflakeUtil} from "discord.js";
 import {YoutubeVideo} from "./YoutubeVideo";
 import {Subscription} from "./Subscription";
 import axios from "axios";
-import {get as config} from "../config";
 import {google, youtube_v3} from "googleapis";
 import {logger} from "../logger";
 import {redis} from "../redis";
 import crypto = require("crypto");
+import config = require("config");
 import Schema$Channel = youtube_v3.Schema$Channel;
 
 @Table({tableName: 'web_subs', createdAt: 'created_at', updatedAt: 'updated_at', collate: 'utf8_bin'})
@@ -79,7 +79,7 @@ export class WebSub extends Model<WebSub> {
 
     public async subscribe(mode: 'subscribe' | 'unsubscribe' = 'subscribe') {
         let data = new URLSearchParams();
-        data.append('hub.callback', `${config('websub.url')}/websub/${this.id}`);
+        data.append('hub.callback', `${config.get('websub.url')}/websub/${this.id}`);
         data.append('hub.mode', mode);
         data.append('hub.topic', this.topic_url);
         data.append('hub.secret', this.secret);
