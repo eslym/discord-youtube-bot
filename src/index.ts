@@ -1,5 +1,5 @@
 import {sequelize as sql} from "./sql";
-import {logger} from "./logger";
+import {Logger, logger} from "./logger";
 import {Notification} from "./models/Notification";
 import {Subscription} from "./models/Subscription";
 import {WebSub} from "./models/WebSub";
@@ -25,9 +25,7 @@ sql.addModels([
 (async () => {
 
     if(config.has('logging')){
-        for(let fn of config.get<((level, record, raw)=>any)[]>('logging')){
-            logger.on('record', fn);
-        }
+        config.get<(logger: Logger)=>unknown>('logging')(logger);
     }
 
     if (config.get('database.sync')) {
@@ -66,5 +64,4 @@ sql.addModels([
     await bot.login(config.get('discord.token'));
 })().catch(e => {
     logger.error(e);
-    process.exitCode = 1;
 });

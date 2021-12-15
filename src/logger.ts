@@ -21,6 +21,8 @@ export class Logger extends EventEmitter {
     readonly warn: LogFn;
     readonly error: LogFn;
 
+    indent?: number;
+
     constructor() {
         super();
     }
@@ -29,7 +31,7 @@ export class Logger extends EventEmitter {
 for (let level of ['log', 'info', 'warn', 'error']) {
     Logger.prototype[level] = function (...data: any) {
         let prepend = `[${moment().format('YYYY-MM-DD HH:mm:ss')}][${level.toUpperCase()}]`;
-        let indent = os.EOL + ' '.repeat(prepend.length);
+        let indent = os.EOL + ' '.repeat(this.indent ?? prepend.length);
         for (let record of data) {
             let str = util.inspect(record, false, 2, false);
             this.emit('record', level, prepend + str.split(/\r?\n|\n?\r/).join(indent), record);
