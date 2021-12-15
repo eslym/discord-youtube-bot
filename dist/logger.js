@@ -18,8 +18,10 @@ for (let level of ['log', 'info', 'warn', 'error']) {
         let prepend = `[${moment().format('YYYY-MM-DD HH:mm:ss')}][${level.toUpperCase()}]`;
         let indent = os.EOL + ' '.repeat(this.indent ?? prepend.length);
         for (let record of data) {
-            let str = util.inspect(record, false, 2, false);
-            this.emit('record', level, prepend + str.split(/\r?\n|\n?\r/).join(indent), record);
+            if (typeof record !== "string") {
+                record = util.inspect(record, false, 2, false);
+            }
+            this.emit('record', level, prepend + record.split(/\r?\n|\n?\r/).join(indent), record);
         }
     };
 }
