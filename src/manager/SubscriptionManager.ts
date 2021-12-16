@@ -287,18 +287,18 @@ class Manager implements ChannelSubscriptionManager {
             return false;
         }
         let meta = await video.fetchYoutubeVideoMeta();
-        let notification = format[type]({
+        let notification = {
             mentions: subscription.mention ?? [],
             channel: meta.snippet.channelTitle,
             title: meta.snippet.title,
             url: video.url,
-        });
+        };
         if (video.live_at) {
             notification['schedule'] = moment(video.live_at)
                 .locale(config.get('notification.locale'))
                 .format(config.get('notification.timeFormat'));
         }
-        await this._channel.send(notification.trim());
+        await this._channel.send(format[type](notification).trim());
         return true;
     }
 }
