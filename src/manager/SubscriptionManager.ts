@@ -11,6 +11,7 @@ import {logger} from "../logger";
 import {google} from "googleapis";
 import cron = require("node-cron");
 import moment = require("moment");
+import config = require('config');
 
 interface ChannelSubscribeOptions {
     notify_video?: boolean;
@@ -292,6 +293,11 @@ class Manager implements ChannelSubscriptionManager {
             title: meta.snippet.title,
             url: video.url,
         });
+        if (video.live_at) {
+            notification['schedule'] = moment(video.live_at)
+                .locale(config.get('notification.locale'))
+                .format(config.get('notification.timeFormat'));
+        }
         await this._channel.send(notification.trim());
         return true;
     }

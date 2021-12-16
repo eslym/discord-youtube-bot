@@ -13,6 +13,7 @@ const logger_1 = require("../logger");
 const googleapis_1 = require("googleapis");
 const cron = require("node-cron");
 const moment = require("moment");
+const config = require("config");
 let booted = false;
 async function cleanUpWebSub() {
     let subs = await WebSub_1.WebSub.findAll({
@@ -255,6 +256,11 @@ class Manager {
             title: meta.snippet.title,
             url: video.url,
         });
+        if (video.live_at) {
+            notification['schedule'] = moment(video.live_at)
+                .locale(config.get('notification.locale'))
+                .format(config.get('notification.timeFormat'));
+        }
         await this._channel.send(notification.trim());
         return true;
     }
