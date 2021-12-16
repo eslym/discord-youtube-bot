@@ -3,7 +3,7 @@ import config = require('config');
 
 function compile(text) {
     return HBS.compile(text, {
-        noEscape: false
+        noEscape: true
     });
 }
 
