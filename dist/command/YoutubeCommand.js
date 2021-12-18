@@ -62,7 +62,8 @@ async function makeChannelActions(manager, channelId) {
             .addComponents((0, checkbox_1.checkbox)('New video publish', sub.notify_video).setCustomId('youtube-notify-video'))
             .addComponents((0, checkbox_1.checkbox)('Live streaming scheduled', sub.notify_live).setCustomId('youtube-notify-live'))
             .addComponents((0, checkbox_1.checkbox)('Live streaming re-scheduled', sub.notify_reschedule).setCustomId('youtube-notify-reschedule'))
-            .addComponents((0, checkbox_1.checkbox)('Live streaming starting soon', sub.notify_starting).setCustomId('youtube-notify-starting'));
+            .addComponents((0, checkbox_1.checkbox)('Live streaming starting soon', sub.notify_starting).setCustomId('youtube-notify-starting'))
+            .addComponents((0, checkbox_1.checkbox)('Live started without schedule', sub.notify_starting).setCustomId('youtube-notify-started'));
         rows.push(toggles);
         let ch = manager.getChannel();
         let roles = await ch.guild.roles.fetch();

@@ -12,6 +12,7 @@ import {google} from "googleapis";
 import cron = require("node-cron");
 import moment = require("moment");
 import config = require('config');
+import {redis} from "../redis";
 
 interface ChannelSubscribeOptions {
     notify_video?: boolean;
@@ -124,7 +125,7 @@ export module SubscriptionManager {
         let dict: Dict<YoutubeVideo> = Object
             .fromEntries(videos.map(v => [v.video_id, v]));
         let res = await google.youtube('v3').videos.list({
-            id: ids, part: ['id', 'liveStreamingDetails']
+            id: ids, part: ['id', 'snippet', 'liveStreamingDetails']
         });
         for (let schema of res.data.items) {
             if (
@@ -136,6 +137,13 @@ export module SubscriptionManager {
             }
             let newLive = moment(schema.liveStreamingDetails.scheduledStartTime);
             let video = dict[schema.id];
+            await redis.set(
+                `ytVideo:${this.video_id}`,
+                JSON.stringify(schema),
+                {
+                    EX: 5
+                }
+            );
             if (!newLive.isSame(video.live_at)) {
                 video.live_at = newLive.toDate();
                 video.save();
@@ -160,6 +168,24 @@ export module SubscriptionManager {
                     type: NotificationType.RESCHEDULE,
                     video_id: schema.id,
                     scheduled_at: new Date()
+                });
+            } else if (schema.liveStreamingDetails.actualStartTime){
+                await Notification.destroy({
+                    where: {
+                        video_id: schema.id,
+                        type: NotificationType.STARTING,
+                    }
+                });
+                let websub = await video.$get('subscription');
+                let subs = await websub.$get('subscriptions');
+                for (let sub of subs) {
+                    await sub.notify(NotificationType.STARTED, video);
+                }
+                await Notification.create({
+                    type: NotificationType.STARTED,
+                    video_id: schema.id,
+                    scheduled_at: new Date(),
+                    notified_at: new Date(),
                 });
             }
         }
@@ -308,4 +334,5 @@ export enum NotificationType {
     LIVE = 'live',
     RESCHEDULE = 'reschedule',
     STARTING = 'starting',
+    STARTED = 'started',
 }

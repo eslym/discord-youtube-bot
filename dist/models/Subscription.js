@@ -83,6 +83,10 @@ __decorate([
     __metadata("design:type", Object)
 ], Subscription.prototype, "notify_starting", void 0);
 __decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_1.DataTypes.BOOLEAN, defaultValue: true }),
+    __metadata("design:type", Object)
+], Subscription.prototype, "notify_started", void 0);
+__decorate([
     (0, sequelize_typescript_1.BelongsTo)(() => WebSub_1.WebSub, 'websub_id'),
     __metadata("design:type", WebSub_1.WebSub)
 ], Subscription.prototype, "websub", void 0);

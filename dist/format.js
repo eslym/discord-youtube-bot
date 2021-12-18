@@ -13,6 +13,7 @@ exports.format = {
     live: compile(config.get('notification.live')),
     reschedule: compile(config.get('notification.reschedule')),
     starting: compile(config.get('notification.starting')),
+    started: compile(config.get('notification.started')),
 };
 
 //# sourceMappingURL=format.js.map

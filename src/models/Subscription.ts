@@ -52,6 +52,9 @@ export class Subscription extends Model<Subscription> {
     @Column({type: DataTypes.BOOLEAN, defaultValue: true})
     public notify_starting;
 
+    @Column({type: DataTypes.BOOLEAN, defaultValue: true})
+    public notify_started;
+
     @BelongsTo(() => WebSub, 'websub_id')
     public websub: WebSub;
 

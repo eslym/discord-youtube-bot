@@ -14,6 +14,7 @@ const googleapis_1 = require("googleapis");
 const cron = require("node-cron");
 const moment = require("moment");
 const config = require("config");
+const redis_1 = require("../redis");
 let booted = false;
 async function cleanUpWebSub() {
     let subs = await WebSub_1.WebSub.findAll({
@@ -117,7 +118,7 @@ var SubscriptionManager;
         let dict = Object
             .fromEntries(videos.map(v => [v.video_id, v]));
         let res = await googleapis_1.google.youtube('v3').videos.list({
-            id: ids, part: ['id', 'liveStreamingDetails']
+            id: ids, part: ['id', 'snippet', 'liveStreamingDetails']
         });
         for (let schema of res.data.items) {
             if (!schema.liveStreamingDetails ||
@@ -127,6 +128,9 @@ var SubscriptionManager;
             }
             let newLive = moment(schema.liveStreamingDetails.scheduledStartTime);
             let video = dict[schema.id];
+            await redis_1.redis.set(`ytVideo:${this.video_id}`, JSON.stringify(schema), {
+                EX: 5
+            });
             if (!newLive.isSame(video.live_at)) {
                 video.live_at = newLive.toDate();
                 video.save();
@@ -151,6 +155,25 @@ var SubscriptionManager;
                     type: NotificationType.RESCHEDULE,
                     video_id: schema.id,
                     scheduled_at: new Date()
+                });
+            }
+            else if (schema.liveStreamingDetails.actualStartTime) {
+                await Notification_1.Notification.destroy({
+                    where: {
+                        video_id: schema.id,
+                        type: NotificationType.STARTING,
+                    }
+                });
+                let websub = await video.$get('subscription');
+                let subs = await websub.$get('subscriptions');
+                for (let sub of subs) {
+                    await sub.notify(NotificationType.STARTED, video);
+                }
+                await Notification_1.Notification.create({
+                    type: NotificationType.STARTED,
+                    video_id: schema.id,
+                    scheduled_at: new Date(),
+                    notified_at: new Date(),
                 });
             }
         }
@@ -271,6 +294,7 @@ var NotificationType;
     NotificationType["LIVE"] = "live";
     NotificationType["RESCHEDULE"] = "reschedule";
     NotificationType["STARTING"] = "starting";
+    NotificationType["STARTED"] = "started";
 })(NotificationType = exports.NotificationType || (exports.NotificationType = {}));
 
 //# sourceMappingURL=SubscriptionManager.js.map

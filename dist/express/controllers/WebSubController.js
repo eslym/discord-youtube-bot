@@ -124,14 +124,28 @@ class WebSubController extends BaseController_1.BaseController {
                             schedule = schedule.subtract({ minute: 5 }).startOf('minute');
                             for (let sub of await websub.$get('subscriptions')) {
                                 await sub.notify(SubscriptionManager_1.NotificationType.LIVE, ytVideo);
-                                await Notification_1.Notification.create({
-                                    type: SubscriptionManager_1.NotificationType.STARTING,
-                                    video_id: id,
-                                    scheduled_at: schedule.toDate()
-                                });
                             }
                             await Notification_1.Notification.create({
+                                type: SubscriptionManager_1.NotificationType.STARTING,
+                                video_id: id,
+                                scheduled_at: schedule.toDate()
+                            });
+                            await Notification_1.Notification.create({
                                 type: SubscriptionManager_1.NotificationType.LIVE,
+                                video_id: id,
+                                scheduled_at: new Date(),
+                                notified_at: new Date(),
+                            });
+                            continue;
+                        }
+                        else if (videoSnippet.liveStreamingDetails.actualStartTime &&
+                            !videoSnippet.liveStreamingDetails.actualEndTime) {
+                            let subs = await websub.$get('subscriptions');
+                            for (let sub of subs) {
+                                await sub.notify(SubscriptionManager_1.NotificationType.STARTED, video);
+                            }
+                            await Notification_1.Notification.create({
+                                type: SubscriptionManager_1.NotificationType.STARTED,
                                 video_id: id,
                                 scheduled_at: new Date(),
                                 notified_at: new Date(),
@@ -158,8 +172,26 @@ class WebSubController extends BaseController_1.BaseController {
                     continue;
                 }
                 if (!videoSnippet.liveStreamingDetails ||
-                    !videoSnippet.liveStreamingDetails.scheduledStartTime ||
-                    videoSnippet.liveStreamingDetails.actualStartTime) {
+                    !videoSnippet.liveStreamingDetails.scheduledStartTime) {
+                    continue;
+                }
+                if (videoSnippet.liveStreamingDetails.actualStartTime) {
+                    let subs = await websub.$get('subscriptions');
+                    await Notification_1.Notification.destroy({
+                        where: {
+                            video_id: id,
+                            type: SubscriptionManager_1.NotificationType.STARTING,
+                        }
+                    });
+                    for (let sub of subs) {
+                        await sub.notify(SubscriptionManager_1.NotificationType.STARTED, video);
+                    }
+                    await Notification_1.Notification.create({
+                        type: SubscriptionManager_1.NotificationType.STARTED,
+                        video_id: id,
+                        scheduled_at: new Date(),
+                        notified_at: new Date(),
+                    });
                     continue;
                 }
                 let newLive = moment(videoSnippet.liveStreamingDetails.scheduledStartTime);

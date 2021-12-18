@@ -22,3 +22,7 @@ notification:
     {{#if mentions}}Hi {{#each mentions}}{{this}}{{/each}},{{/if}}
     {{channel}} is gonna to start a live streaming soon.
     {{url}}
+  started: |-
+    {{#if mentions}}Hi {{#each mentions}}{{this}}{{/each}},{{/if}}
+    {{channel}} just started a live streaming.
+    {{url}}
