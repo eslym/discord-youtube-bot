@@ -184,7 +184,7 @@ export class WebSubController extends BaseController {
                         }
                     });
                     for (let sub of subs) {
-                        await sub.notify(NotificationType.STARTED, video);
+                        await sub.notify(NotificationType.STARTED, ytVideo);
                     }
                     await Notification.create({
                         type: NotificationType.STARTED,
