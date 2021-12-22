@@ -86,11 +86,24 @@ var SubscriptionManager;
                 notified_at: null,
             }
         });
+        let ids = notifications.map(n => n.video_id);
+        let res = await googleapis_1.google.youtube('v3').videos.list({
+            id: ids, part: ['id', 'snippet', 'liveStreamingDetails']
+        });
+        for (let schema of res.data.items) {
+            await redis_1.redis.set(`ytVideo:${this.video_id}`, JSON.stringify(schema), {
+                EX: 5
+            });
+        }
         for (let notification of notifications) {
             try {
                 let video = notification.video;
+                let schema = await video.fetchYoutubeVideoMeta();
                 let websub = await video.$get('subscription');
                 let subscriptions = await websub.$get('subscriptions');
+                if (schema.liveStreamingDetails.actualStartTime) {
+                    notification.type = NotificationType.STARTED;
+                }
                 for (let sub of subscriptions) {
                     await sub.notify(notification.type, video);
                 }
