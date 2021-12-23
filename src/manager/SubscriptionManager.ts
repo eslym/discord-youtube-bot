@@ -196,10 +196,18 @@ export module SubscriptionManager {
                     }
                 });
                 let schedule = newLive.subtract({minute: 5}).startOf('minute').toDate();
-                for (let notification of notifications) {
-                    notification.scheduled_at = schedule;
-                    notification.notified_at = null;
-                    await notification.save();
+                if(notifications.length > 0){
+                    for (let notification of notifications) {
+                        notification.scheduled_at = schedule;
+                        notification.notified_at = null;
+                        await notification.save();
+                    }
+                } else {
+                    await Notification.create({
+                        type: NotificationType.STARTING,
+                        video_id: schema.id,
+                        scheduled_at: schedule,
+                    });
                 }
                 let websub = await video.$get('subscription');
                 let subs = await websub.$get('subscriptions');
@@ -209,7 +217,8 @@ export module SubscriptionManager {
                 await Notification.create({
                     type: NotificationType.RESCHEDULE,
                     video_id: schema.id,
-                    scheduled_at: new Date()
+                    scheduled_at: new Date(),
+                    notified_at: new Date(),
                 });
             }
         }

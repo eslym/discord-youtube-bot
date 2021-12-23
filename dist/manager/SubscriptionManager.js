@@ -192,7 +192,8 @@ var SubscriptionManager;
                 await Notification_1.Notification.create({
                     type: NotificationType.RESCHEDULE,
                     video_id: schema.id,
-                    scheduled_at: new Date()
+                    scheduled_at: new Date(),
+                    notified_at: new Date(),
                 });
             }
         }
