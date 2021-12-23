@@ -7,7 +7,7 @@ const moment = require("moment");
 const config = require("config");
 exports.sequelize = new sequelize_typescript_1.Sequelize(config.get('database.database'), config.get('database.username'), config.get('database.password'), {
     dialect: config.get('database.driver'),
-    logging: config.get('database.logging') ? logger_1.logger.log : false,
+    logging: config.get('database.logging') ? (data) => logger_1.logger.log(data) : false,
     host: config.get('database.host'),
     port: config.get('database.port'),
     timezone: config.has('database.timezone') ?

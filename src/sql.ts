@@ -9,7 +9,7 @@ export const sequelize: Sequelize = new Sequelize(
     config.get('database.password'),
     {
         dialect: config.get('database.driver'),
-        logging: config.get('database.logging') ? logger.log : false,
+        logging: config.get('database.logging') ? (data)=>logger.log(data) : false,
         host: config.get('database.host'),
         port: config.get('database.port'),
         timezone: config.has('database.timezone') ?
