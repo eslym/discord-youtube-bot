@@ -175,7 +175,10 @@ export class WebSubController extends BaseController {
                 ) {
                     continue;
                 }
-                if(videoSnippet.liveStreamingDetails.actualStartTime){
+                if(
+                    videoSnippet.liveStreamingDetails.actualStartTime &&
+                    !videoSnippet.liveStreamingDetails.actualEndTime
+                ){
                     let subs = await websub.$get('subscriptions');
                     await Notification.destroy({
                         where: {
