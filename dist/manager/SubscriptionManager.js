@@ -135,12 +135,31 @@ var SubscriptionManager;
         });
         for (let schema of res.data.items) {
             if (!schema.liveStreamingDetails ||
-                !schema.liveStreamingDetails.scheduledStartTime ||
-                schema.liveStreamingDetails.actualStartTime) {
+                !schema.liveStreamingDetails.scheduledStartTime) {
+                continue;
+            }
+            let video = dict[schema.id];
+            if (schema.liveStreamingDetails.actualStartTime) {
+                await Notification_1.Notification.destroy({
+                    where: {
+                        video_id: schema.id,
+                        type: NotificationType.STARTING,
+                    }
+                });
+                let websub = await video.$get('subscription');
+                let subs = await websub.$get('subscriptions');
+                for (let sub of subs) {
+                    await sub.notify(NotificationType.STARTED, video);
+                }
+                await Notification_1.Notification.create({
+                    type: NotificationType.STARTED,
+                    video_id: schema.id,
+                    scheduled_at: new Date(),
+                    notified_at: new Date(),
+                });
                 continue;
             }
             let newLive = moment(schema.liveStreamingDetails.scheduledStartTime);
-            let video = dict[schema.id];
             await redis_1.redis.set(`ytVideo:${this.video_id}`, JSON.stringify(schema), {
                 EX: 5
             });
@@ -168,25 +187,6 @@ var SubscriptionManager;
                     type: NotificationType.RESCHEDULE,
                     video_id: schema.id,
                     scheduled_at: new Date()
-                });
-            }
-            else if (schema.liveStreamingDetails.actualStartTime) {
-                await Notification_1.Notification.destroy({
-                    where: {
-                        video_id: schema.id,
-                        type: NotificationType.STARTING,
-                    }
-                });
-                let websub = await video.$get('subscription');
-                let subs = await websub.$get('subscriptions');
-                for (let sub of subs) {
-                    await sub.notify(NotificationType.STARTED, video);
-                }
-                await Notification_1.Notification.create({
-                    type: NotificationType.STARTED,
-                    video_id: schema.id,
-                    scheduled_at: new Date(),
-                    notified_at: new Date(),
                 });
             }
         }
