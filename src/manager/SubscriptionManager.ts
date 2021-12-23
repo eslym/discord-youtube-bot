@@ -153,10 +153,8 @@ export module SubscriptionManager {
                 !schema.liveStreamingDetails ||
                 !schema.liveStreamingDetails.scheduledStartTime
             ) {
-                logger.log(`No update for video '${schema.id}'`);
                 continue;
             }
-            logger.log(`Caching data for '${schema.id}'`);
             await redis.set(
                 `ytVideo:${schema.id}`,
                 JSON.stringify(schema),

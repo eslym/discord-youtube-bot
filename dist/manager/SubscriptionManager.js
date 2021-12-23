@@ -140,10 +140,8 @@ var SubscriptionManager;
         for (let schema of res.data.items) {
             if (!schema.liveStreamingDetails ||
                 !schema.liveStreamingDetails.scheduledStartTime) {
-                logger_1.logger.log(`No update for video '${schema.id}'`);
                 continue;
             }
-            logger_1.logger.log(`Caching data for '${schema.id}'`);
             await redis_1.redis.set(`ytVideo:${schema.id}`, JSON.stringify(schema), {
                 EX: 5
             });
