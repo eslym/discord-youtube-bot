@@ -151,6 +151,13 @@ export module SubscriptionManager {
             ) {
                 continue;
             }
+            await redis.set(
+                `ytVideo:${this.video_id}`,
+                JSON.stringify(schema),
+                {
+                    EX: 5
+                }
+            );
             let video = dict[schema.id];
             if (schema.liveStreamingDetails.actualStartTime){
                 await Notification.destroy({
@@ -173,13 +180,6 @@ export module SubscriptionManager {
                 continue;
             }
             let newLive = moment(schema.liveStreamingDetails.scheduledStartTime);
-            await redis.set(
-                `ytVideo:${this.video_id}`,
-                JSON.stringify(schema),
-                {
-                    EX: 5
-                }
-            );
             if (!newLive.isSame(video.live_at)) {
                 video.live_at = newLive.toDate();
                 video.save();
