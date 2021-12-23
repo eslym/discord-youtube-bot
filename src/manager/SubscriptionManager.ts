@@ -100,7 +100,7 @@ export module SubscriptionManager {
         });
         for (let schema of res.data.items) {
             await redis.set(
-                `ytVideo:${this.video_id}`,
+                `ytVideo:${schema.id}`,
                 JSON.stringify(schema),
                 {
                     EX: 5
@@ -109,11 +109,13 @@ export module SubscriptionManager {
         }
         for (let notification of notifications) {
             try {
-                let video = notification.video
+                let video = notification.video;
+                logger.log(`Sending scheduled notification for '${video.video_id}'`);
                 let schema = await video.fetchYoutubeVideoMeta();
                 let websub = await video.$get('subscription');
                 let subscriptions = await websub.$get('subscriptions');
                 if(schema.liveStreamingDetails.actualStartTime){
+                    logger.log(`Video '${video.video_id}' started before notification.`);
                     notification.type = NotificationType.STARTED;
                 }
                 for (let sub of subscriptions) {
@@ -128,6 +130,7 @@ export module SubscriptionManager {
     }
 
     export async function checkVideoUpdates() {
+        logger.log('Checking for video updates.');
         let videos = await YoutubeVideo.findAll({
             include: [Notification],
             where: {
@@ -136,6 +139,7 @@ export module SubscriptionManager {
             }
         });
         if (videos.length === 0) {
+            logger.log('No video is pending for checking, skipping.');
             return;
         }
         let ids = videos.map(v => v.video_id);
@@ -149,10 +153,12 @@ export module SubscriptionManager {
                 !schema.liveStreamingDetails ||
                 !schema.liveStreamingDetails.scheduledStartTime
             ) {
+                logger.log(`No update for video '${schema.id}'`);
                 continue;
             }
+            logger.log(`Caching data for '${schema.id}'`);
             await redis.set(
-                `ytVideo:${this.video_id}`,
+                `ytVideo:${schema.id}`,
                 JSON.stringify(schema),
                 {
                     EX: 5
@@ -160,6 +166,7 @@ export module SubscriptionManager {
             );
             let video = dict[schema.id];
             if (schema.liveStreamingDetails.actualStartTime){
+                logger.log(`Video '${schema.id}' started before notification.`);
                 await Notification.destroy({
                     where: {
                         video_id: schema.id,
@@ -181,6 +188,7 @@ export module SubscriptionManager {
             }
             let newLive = moment(schema.liveStreamingDetails.scheduledStartTime);
             if (!newLive.isSame(video.live_at)) {
+                logger.log(`Video '${schema.id}' re-scheduled.`);
                 video.live_at = newLive.toDate();
                 video.save();
                 let notifications = await Notification.findAll({

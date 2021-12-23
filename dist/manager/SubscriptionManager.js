@@ -91,17 +91,19 @@ var SubscriptionManager;
             id: ids, part: ['id', 'snippet', 'liveStreamingDetails']
         });
         for (let schema of res.data.items) {
-            await redis_1.redis.set(`ytVideo:${this.video_id}`, JSON.stringify(schema), {
+            await redis_1.redis.set(`ytVideo:${schema.id}`, JSON.stringify(schema), {
                 EX: 5
             });
         }
         for (let notification of notifications) {
             try {
                 let video = notification.video;
+                logger_1.logger.log(`Sending scheduled notification for '${video.video_id}'`);
                 let schema = await video.fetchYoutubeVideoMeta();
                 let websub = await video.$get('subscription');
                 let subscriptions = await websub.$get('subscriptions');
                 if (schema.liveStreamingDetails.actualStartTime) {
+                    logger_1.logger.log(`Video '${video.video_id}' started before notification.`);
                     notification.type = NotificationType.STARTED;
                 }
                 for (let sub of subscriptions) {
@@ -117,6 +119,7 @@ var SubscriptionManager;
     }
     SubscriptionManager.checkNotification = checkNotification;
     async function checkVideoUpdates() {
+        logger_1.logger.log('Checking for video updates.');
         let videos = await YoutubeVideo_1.YoutubeVideo.findAll({
             include: [Notification_1.Notification],
             where: {
@@ -125,6 +128,7 @@ var SubscriptionManager;
             }
         });
         if (videos.length === 0) {
+            logger_1.logger.log('No video is pending for checking, skipping.');
             return;
         }
         let ids = videos.map(v => v.video_id);
@@ -136,13 +140,16 @@ var SubscriptionManager;
         for (let schema of res.data.items) {
             if (!schema.liveStreamingDetails ||
                 !schema.liveStreamingDetails.scheduledStartTime) {
+                logger_1.logger.log(`No update for video '${schema.id}'`);
                 continue;
             }
-            await redis_1.redis.set(`ytVideo:${this.video_id}`, JSON.stringify(schema), {
+            logger_1.logger.log(`Caching data for '${schema.id}'`);
+            await redis_1.redis.set(`ytVideo:${schema.id}`, JSON.stringify(schema), {
                 EX: 5
             });
             let video = dict[schema.id];
             if (schema.liveStreamingDetails.actualStartTime) {
+                logger_1.logger.log(`Video '${schema.id}' started before notification.`);
                 await Notification_1.Notification.destroy({
                     where: {
                         video_id: schema.id,
@@ -164,6 +171,7 @@ var SubscriptionManager;
             }
             let newLive = moment(schema.liveStreamingDetails.scheduledStartTime);
             if (!newLive.isSame(video.live_at)) {
+                logger_1.logger.log(`Video '${schema.id}' re-scheduled.`);
                 video.live_at = newLive.toDate();
                 video.save();
                 let notifications = await Notification_1.Notification.findAll({
