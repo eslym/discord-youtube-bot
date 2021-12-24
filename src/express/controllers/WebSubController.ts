@@ -176,14 +176,24 @@ export class WebSubController extends BaseController {
                     continue;
                 }
                 if(
-                    videoSnippet.liveStreamingDetails.actualStartTime &&
-                    !videoSnippet.liveStreamingDetails.actualEndTime
+                    videoSnippet.liveStreamingDetails.actualStartTime
                 ){
+                    let noti = await Notification.count({
+                        where: {
+                            video_id: id,
+                            type: NotificationType.STARTING,
+                            notified_at: null,
+                        }
+                    });
+                    if(noti === 0){
+                        continue;
+                    }
                     let subs = await websub.$get('subscriptions');
                     await Notification.destroy({
                         where: {
                             video_id: id,
                             type: NotificationType.STARTING,
+                            notified_at: null,
                         }
                     });
                     for (let sub of subs) {
