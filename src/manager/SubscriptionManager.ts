@@ -94,6 +94,9 @@ export module SubscriptionManager {
                 notified_at: null,
             }
         });
+        if(notifications.length === 0){
+            return;
+        }
         let ids = notifications.map(n=>n.video_id);
         let res = await google.youtube('v3').videos.list({
             id: ids, part: ['id', 'snippet', 'liveStreamingDetails']

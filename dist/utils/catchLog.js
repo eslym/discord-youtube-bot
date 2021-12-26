@@ -5,7 +5,7 @@ const logger_1 = require("../logger");
 function catchLog(promiseProvider, level = 'error') {
     return ((...args) => (new Promise((resolve) => {
         resolve(promiseProvider(...args));
-    })).catch(logger_1.logger[level]));
+    })).catch((err) => logger_1.logger[level](err)));
 }
 exports.catchLog = catchLog;
 

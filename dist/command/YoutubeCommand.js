@@ -53,17 +53,11 @@ async function makeChannelActions(manager, channelId) {
     if (state) {
         let sub = await manager.getSubscription(channelId);
         let toggles = new discord_js_1.MessageActionRow()
-            .addComponents(new discord_js_1.MessageButton()
-            .setEmoji('📢')
-            .setStyle('PRIMARY')
-            .setLabel('Notifications:')
-            .setDisabled(true)
-            .setCustomId('---'))
             .addComponents((0, checkbox_1.checkbox)('New video publish', sub.notify_video).setCustomId('youtube-notify-video'))
             .addComponents((0, checkbox_1.checkbox)('Live streaming scheduled', sub.notify_live).setCustomId('youtube-notify-live'))
             .addComponents((0, checkbox_1.checkbox)('Live streaming re-scheduled', sub.notify_reschedule).setCustomId('youtube-notify-reschedule'))
             .addComponents((0, checkbox_1.checkbox)('Live streaming starting soon', sub.notify_starting).setCustomId('youtube-notify-starting'))
-            .addComponents((0, checkbox_1.checkbox)('Live started without schedule', sub.notify_starting).setCustomId('youtube-notify-started'));
+            .addComponents((0, checkbox_1.checkbox)('Live started out of schedule', sub.notify_started).setCustomId('youtube-notify-started'));
         rows.push(toggles);
         let ch = manager.getChannel();
         let roles = await ch.guild.roles.fetch();
@@ -115,7 +109,7 @@ async function handleChannelAction(interaction, manager, message_id, youtube_cha
         interaction.editReply({
             embeds,
             components: []
-        }).catch(logger_1.logger.error);
+        }).catch((err) => logger_1.logger.error(err));
     });
 }
 async function sendDetailPage(interaction, snippet) {
@@ -184,9 +178,9 @@ const handlers = {
         }));
         menuHandler.on('end', () => {
             interaction.editReply({
-                embeds: [embed_1.embed.warn('List expired.')],
+                embeds: [embed_1.embed.warn('Search expired.')],
                 components: []
-            }).catch(logger_1.logger.error);
+            }).catch((err) => logger_1.logger.error(err));
         });
     },
     async inspect(interaction) {
@@ -283,9 +277,9 @@ const handlers = {
         }));
         menuHandler.on('end', () => {
             interaction.editReply({
-                embeds: [embed_1.embed.warn('Search expired.')],
+                embeds: [embed_1.embed.warn('List expired.')],
                 components: []
-            }).catch(logger_1.logger.error);
+            }).catch((err) => logger_1.logger.error(err));
         });
     }
 };
