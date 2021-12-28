@@ -142,7 +142,7 @@ class WebSubController extends BaseController_1.BaseController {
                             !videoSnippet.liveStreamingDetails.actualEndTime) {
                             let subs = await websub.$get('subscriptions');
                             for (let sub of subs) {
-                                await sub.notify(SubscriptionManager_1.NotificationType.STARTED, video);
+                                await sub.notify(SubscriptionManager_1.NotificationType.STARTED, ytVideo);
                             }
                             await Notification_1.Notification.create({
                                 type: SubscriptionManager_1.NotificationType.STARTED,

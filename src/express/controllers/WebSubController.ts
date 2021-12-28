@@ -140,7 +140,7 @@ export class WebSubController extends BaseController {
                         ) {
                             let subs = await websub.$get('subscriptions');
                             for (let sub of subs) {
-                                await sub.notify(NotificationType.STARTED, video);
+                                await sub.notify(NotificationType.STARTED, ytVideo);
                             }
                             await Notification.create({
                                 type: NotificationType.STARTED,
