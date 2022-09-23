@@ -32,7 +32,7 @@ function limit(str: string, length: number) {
     return str.slice(0, length - 3) + '...';
 }
 
-function buildSearchResult(res: Schema$SearchListResponse | Schema$ChannelListResponse): MessageActionRow[] {
+function buildSearchResult(res: Schema$SearchListResponse | Schema$ChannelListResponse): MessageActionRow<any, any, any>[] {
     let select = new MessageSelectMenu()
         .setCustomId('youtube-search-result')
         .setOptions(res.items.map(i => ({
