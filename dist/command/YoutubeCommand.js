@@ -286,7 +286,7 @@ const handlers = {
 exports.YoutubeCommand = {
     id: '5c68e897-1737-4fbd-97e0-5e383b54246b',
     definition: {
-        type: 1 /* CHAT_INPUT */,
+        type: 1 /* ApplicationCommandTypes.CHAT_INPUT */,
         name: 'youtube',
         description: 'Operate youtube subscriptions on channel',
         defaultPermission: false,

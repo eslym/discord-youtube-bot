@@ -7,7 +7,7 @@ const embed_1 = require("../utils/embed");
 exports.PermissionCommand = {
     id: '97792e50-428c-47c5-be48-8407aad98cdb',
     definition: {
-        type: 1 /* CHAT_INPUT */,
+        type: 1 /* ApplicationCommandTypes.CHAT_INPUT */,
         name: 'perm',
         description: 'Manage permission for youtube command.',
         defaultPermission: false,

@@ -12,6 +12,10 @@ const sequelize_1 = require("sequelize");
 const YoutubeVideo_1 = require("../../models/YoutubeVideo");
 const SubscriptionManager_1 = require("../../manager/SubscriptionManager");
 const crypto = require("crypto");
+const config = require("config");
+const fsp = require("fs/promises");
+const fs = require("fs");
+const discord_js_1 = require("discord.js");
 class WebSubController extends BaseController_1.BaseController {
     async subscribe() {
         let websub = await this.resolveParam('websub', (id) => WebSub_1.WebSub.findByPk(id), true);
@@ -65,6 +69,7 @@ class WebSubController extends BaseController_1.BaseController {
     async callback() {
         let websub = await this.resolveParam('websub', (id) => WebSub_1.WebSub.findByPk(id), true);
         this.response.send('OK');
+        // Parse and verify the payload body
         this.request.body = await (0, xml2js_1.parseStringPromise)(this.request.raw.toString());
         let [algo, sig] = this.request.headers['x-hub-signature'].split('=', 2);
         let hmac = crypto.createHmac(algo, websub.secret);
@@ -73,6 +78,14 @@ class WebSubController extends BaseController_1.BaseController {
         if (sig.toLowerCase() !== compute) {
             logger_1.logger.warn(`[WebSub] Invalid signature ${sig}`);
             return;
+        }
+        // Save payload when security checks passed and save payload enabled
+        if (config.get('websub.savePayload.enabled')) {
+            let path = config.get('websub.savePayload.path');
+            if (!fs.existsSync(path)) {
+                await fsp.mkdir(path, { recursive: true });
+            }
+            await fsp.writeFile(`${path}/${discord_js_1.SnowflakeUtil.generate()}.xml`, this.request.raw);
         }
         let data = await websub.fetchYoutubeChannelMeta();
         let title = data.snippet.title;

@@ -98,7 +98,7 @@ var SubscriptionManager;
                 EX: 5
             });
         }
-        for (let notification of notifications) {
+        await Promise.allSettled(notifications.map(async (notification) => {
             try {
                 let video = notification.video;
                 logger_1.logger.log(`Sending scheduled notification for '${video.video_id}'`);
@@ -118,7 +118,7 @@ var SubscriptionManager;
             catch (error) {
                 logger_1.logger.warn(error);
             }
-        }
+        }));
     }
     SubscriptionManager.checkNotification = checkNotification;
     async function checkVideoUpdates() {
@@ -140,10 +140,10 @@ var SubscriptionManager;
         let res = await googleapis_1.google.youtube('v3').videos.list({
             id: ids, part: ['id', 'snippet', 'liveStreamingDetails']
         });
-        for (let schema of res.data.items) {
+        await Promise.allSettled(res.data.items.map(async (schema) => {
             if (!schema.liveStreamingDetails ||
                 !schema.liveStreamingDetails.scheduledStartTime) {
-                continue;
+                return;
             }
             await redis_1.redis.set(`ytVideo:${schema.id}`, JSON.stringify(schema), {
                 EX: 5
@@ -168,7 +168,7 @@ var SubscriptionManager;
                     scheduled_at: new Date(),
                     notified_at: new Date(),
                 });
-                continue;
+                return;
             }
             let newLive = moment(schema.liveStreamingDetails.scheduledStartTime);
             if (!newLive.isSame(video.live_at)) {
@@ -208,7 +208,7 @@ var SubscriptionManager;
                     notified_at: new Date(),
                 });
             }
-        }
+        }));
     }
     SubscriptionManager.checkVideoUpdates = checkVideoUpdates;
 })(SubscriptionManager = exports.SubscriptionManager || (exports.SubscriptionManager = {}));
