@@ -94,10 +94,10 @@ export module SubscriptionManager {
                 notified_at: null,
             }
         });
-        if(notifications.length === 0){
+        if (notifications.length === 0) {
             return;
         }
-        let ids = notifications.map(n=>n.video_id);
+        let ids = notifications.map(n => n.video_id);
         let res = await google.youtube('v3').videos.list({
             id: ids, part: ['id', 'snippet', 'liveStreamingDetails']
         });
@@ -110,14 +110,14 @@ export module SubscriptionManager {
                 }
             );
         }
-        for (let notification of notifications) {
+        await Promise.allSettled(notifications.map(async (notification) => {
             try {
                 let video = notification.video;
                 logger.log(`Sending scheduled notification for '${video.video_id}'`);
                 let schema = await video.fetchYoutubeVideoMeta();
                 let websub = await video.$get('subscription');
                 let subscriptions = await websub.$get('subscriptions');
-                if(schema.liveStreamingDetails.actualStartTime){
+                if (schema.liveStreamingDetails.actualStartTime) {
                     logger.log(`Video '${video.video_id}' started before notification.`);
                     notification.type = NotificationType.STARTED;
                 }
@@ -129,7 +129,7 @@ export module SubscriptionManager {
             } catch (error) {
                 logger.warn(error);
             }
-        }
+        }))
     }
 
     export async function checkVideoUpdates() {
@@ -151,12 +151,12 @@ export module SubscriptionManager {
         let res = await google.youtube('v3').videos.list({
             id: ids, part: ['id', 'snippet', 'liveStreamingDetails']
         });
-        for (let schema of res.data.items) {
+        await Promise.allSettled(res.data.items.map(async (schema) => {
             if (
                 !schema.liveStreamingDetails ||
                 !schema.liveStreamingDetails.scheduledStartTime
             ) {
-                continue;
+                return;
             }
             await redis.set(
                 `ytVideo:${schema.id}`,
@@ -166,7 +166,7 @@ export module SubscriptionManager {
                 }
             );
             let video = dict[schema.id];
-            if (schema.liveStreamingDetails.actualStartTime){
+            if (schema.liveStreamingDetails.actualStartTime) {
                 logger.log(`Video '${schema.id}' started before notification.`);
                 await Notification.destroy({
                     where: {
@@ -185,7 +185,7 @@ export module SubscriptionManager {
                     scheduled_at: new Date(),
                     notified_at: new Date(),
                 });
-                continue;
+                return;
             }
             let newLive = moment(schema.liveStreamingDetails.scheduledStartTime);
             if (!newLive.isSame(video.live_at)) {
@@ -199,7 +199,7 @@ export module SubscriptionManager {
                     }
                 });
                 let schedule = newLive.subtract({minute: 5}).startOf('minute').toDate();
-                if(notifications.length > 0){
+                if (notifications.length > 0) {
                     for (let notification of notifications) {
                         notification.scheduled_at = schedule;
                         notification.notified_at = null;
@@ -224,7 +224,7 @@ export module SubscriptionManager {
                     notified_at: new Date(),
                 });
             }
-        }
+        }))
     }
 }
 
