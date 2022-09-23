@@ -1,4 +1,4 @@
-import {SnowflakeUtil, TextBasedChannels} from "discord.js";
+import {SnowflakeUtil, TextBasedChannel} from "discord.js";
 import {BeforeValidate, BelongsTo, Column, Model, Table} from "sequelize-typescript";
 import {DataTypes} from "sequelize";
 import {WebSub} from "./WebSub";
@@ -63,7 +63,7 @@ export class Subscription extends Model<Subscription> {
             .then(m => m.notify(type, this, video));
     }
 
-    public static async tryFind(channel_id: string, channel: TextBasedChannels) {
+    public static async tryFind(channel_id: string, channel: TextBasedChannel) {
         let websub = await WebSub.findOne({
             where: {
                 youtube_channel: channel_id,

@@ -1,7 +1,7 @@
-import {DMChannel, TextBasedChannels, TextChannel} from "discord.js";
+import {DMChannel, TextBasedChannel, TextChannel} from "discord.js";
 
 export const channel = {
-    name(channel: TextBasedChannels) {
+    name(channel: TextBasedChannel) {
         if (channel.type === 'DM') {
             return (channel as DMChannel).recipient.tag;
         } else {
