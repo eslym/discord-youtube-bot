@@ -11,6 +11,10 @@ import {NotificationType} from "../../manager/SubscriptionManager";
 import {youtube_v3} from "googleapis";
 import crypto = require("crypto");
 import Schema$Video = youtube_v3.Schema$Video;
+import config = require('config');
+import fsp = require('fs/promises');
+import fs = require('fs');
+import {SnowflakeUtil} from "discord.js";
 
 export class WebSubController extends BaseController {
     async subscribe() {
@@ -64,6 +68,8 @@ export class WebSubController extends BaseController {
     async callback() {
         let websub: WebSub = await this.resolveParam<Promise<WebSub>>('websub', (id) => WebSub.findByPk(id), true);
         this.response.send('OK');
+
+        // Parse and verify the payload body
         this.request.body = await parseStringPromise(this.request.raw.toString());
         let [algo, sig] = (this.request.headers['x-hub-signature'] as string).split('=', 2);
         let hmac = crypto.createHmac(algo, websub.secret);
@@ -73,6 +79,16 @@ export class WebSubController extends BaseController {
             logger.warn(`[WebSub] Invalid signature ${sig}`)
             return;
         }
+
+        // Save payload when security checks passed and save payload enabled
+        if (config.get('websub.savePayload.enabled')) {
+            let path = config.get<string>('websub.savePayload.path');
+            if (!fs.existsSync(path)) {
+                await fsp.mkdir(path, {recursive: true});
+            }
+            await fsp.writeFile(`${path}/${SnowflakeUtil.generate()}.xml`, this.request.raw);
+        }
+
         let data = await websub.fetchYoutubeChannelMeta();
         let title = data.snippet.title;
         logger.info(`[WebSub] Notification received from ${title}`);
@@ -175,9 +191,9 @@ export class WebSubController extends BaseController {
                 ) {
                     continue;
                 }
-                if(
+                if (
                     videoSnippet.liveStreamingDetails.actualStartTime
-                ){
+                ) {
                     let noti = await Notification.count({
                         where: {
                             video_id: id,
@@ -185,7 +201,7 @@ export class WebSubController extends BaseController {
                             notified_at: null,
                         }
                     });
-                    if(noti === 0){
+                    if (noti === 0) {
                         continue;
                     }
                     let subs = await websub.$get('subscriptions');

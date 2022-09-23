@@ -1,3 +1,5 @@
+const path = require("path");
+
 module.exports = {
     discord: {
         /**
@@ -31,7 +33,15 @@ module.exports = {
         /**
          * The port for webserver to listen to
          */
-        port: 8080
+        port: 8080,
+
+        /**
+         * Save websub payload for later use
+         */
+        savePayload: {
+            enabled: false,
+            path: path.resolve('websubs')
+        },
     },
     database: {
         driver: 'mysql',
