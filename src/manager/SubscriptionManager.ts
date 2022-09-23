@@ -1,4 +1,4 @@
-import {Channel, ChannelResolvable, Guild, TextBasedChannels} from "discord.js";
+import {Channel, ChannelResolvable, Guild, TextBasedChannel} from "discord.js";
 import {bot} from "../bot";
 import {Subscription} from "../models/Subscription";
 import {WebSub} from "../models/WebSub";
@@ -54,9 +54,9 @@ export module SubscriptionManager {
     export async function get(channel: ChannelResolvable): Promise<ChannelSubscriptionManager> {
         let ch = channel as Channel;
         if (typeof channel === 'string') {
-            ch = bot.channels.resolve(channel);
+            ch = bot.channels.resolve(channel) as Channel;
             if (!ch) {
-                ch = await bot.channels.fetch(channel);
+                ch = await bot.channels.fetch(channel) as Channel;
             }
             if (!ch) {
                 return null;
@@ -65,7 +65,7 @@ export module SubscriptionManager {
         if (ch.type !== 'DM' && ch.type !== 'GUILD_TEXT' && ch.type !== 'GUILD_NEWS') {
             throw new TypeError('Channel is not text based.');
         }
-        return new Manager(ch as TextBasedChannels);
+        return new Manager(ch as TextBasedChannel);
     }
 
     export function boot() {
@@ -229,7 +229,7 @@ export module SubscriptionManager {
 }
 
 export interface ChannelSubscriptionManager {
-    getChannel(): TextBasedChannels;
+    getChannel(): TextBasedChannel;
 
     hasSubscription(youtube_channel: string): Promise<boolean>;
 
@@ -247,9 +247,9 @@ export interface ChannelSubscriptionManager {
 }
 
 class Manager implements ChannelSubscriptionManager {
-    protected _channel: TextBasedChannels;
+    protected _channel: TextBasedChannel;
 
-    constructor(channel: TextBasedChannels) {
+    constructor(channel: TextBasedChannel) {
         this._channel = channel;
     }
 
