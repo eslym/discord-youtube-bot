@@ -1,5 +1,8 @@
 # Discord Youtube Notification Bot
 
+> [!WARNING]
+> This repository already migrated to [V2](https://github.com/eslym/dcyt-bot-v2)
+
 A bot to receive notification from youtube when there is any update. Notification received via
 [Google Pubsubhubbub hub](https://pubsubhubbub.appspot.com/), live-streaming details are fetched from google's youtube
 data API v3. All operations can be done by application command.
